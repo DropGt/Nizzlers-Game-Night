@@ -3,19 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Nizzlers Game Night - Deluxe Edition</title>
+    <title>Nizzlers Game Night - Party Edition</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;800&display=swap" rel="stylesheet">
     <style>
         /* --- GLOBAL STYLES & THEMING --- */
         :root {
-            --bg-gradient: linear-gradient(135deg, #090814, #1a153a, #0d1b2a);
-            --glass-bg: rgba(255, 255, 255, 0.07);
-            --glass-border: rgba(255, 255, 255, 0.15);
+            --bg-gradient: linear-gradient(135deg, #070510, #161033, #0a192f);
+            --glass-bg: rgba(255, 255, 255, 0.08);
+            --glass-border: rgba(255, 255, 255, 0.18);
             --accent-neon: #00ffcc;
             --accent-pink: #ff007f;
             --fire-gold: #ff9900;
             --text-main: #ffffff;
-            --text-muted: #a0a0b0;
+            --text-muted: #a0a0b8;
             --success: #00e676;
             --error: #ff1744;
         }
@@ -25,7 +25,7 @@
         body {
             background: var(--bg-gradient);
             background-size: 300% 300%;
-            animation: gradientShift 12s ease infinite;
+            animation: gradientShift 14s ease infinite;
             color: var(--text-main);
             height: 100vh;
             overflow: hidden;
@@ -41,51 +41,26 @@
             100% { background-position: 0% 50%; }
         }
 
-        /* --- DRAMATIC SCROLLING CURTAIN ENTRANCE ANIMATION --- */
-        #intro-curtain {
-            position: fixed;
-            top: 0; left: 0; width: 100vw; height: 100vh;
-            background: #000;
-            z-index: 99999;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            animation: curtainRollDown 1.8s cubic-bezier(0.77, 0, 0.175, 1) forwards;
-            animation-delay: 0.2s;
+        /* Top Bar User Status & Logout */
+        #user-bar {
+            position: fixed; top: 15px; right: 20px;
+            display: none; align-items: center; gap: 12px;
+            z-index: 10000; background: rgba(0,0,0,0.5); backdrop-filter: blur(10px);
+            padding: 8px 16px; border-radius: 30px; border: 1px solid var(--glass-border);
         }
-
-        @keyframes curtainRollDown {
-            0% { transform: translateY(-100%); }
-            40% { transform: translateY(0%); }
-            70% { transform: translateY(0%); }
-            100% { transform: translateY(100%); visibility: hidden; }
-        }
-
-        #intro-curtain .logo-glow {
-            font-size: 3rem;
-            font-weight: 800;
-            color: var(--accent-neon);
-            text-shadow: 0 0 30px var(--accent-neon);
-            letter-spacing: 4px;
-            animation: pulseGlow 1s ease-in-out infinite alternate;
-        }
-
-        @keyframes pulseGlow {
-            from { opacity: 0.6; transform: scale(0.95); }
-            to { opacity: 1; transform: scale(1.05); }
-        }
+        #user-bar .uname { font-weight: 700; color: var(--accent-neon); font-size: 0.9rem; }
+        #user-bar .btn-logout { background: transparent; color: var(--error); border: none; font-size: 0.8rem; font-weight: 700; cursor: pointer; padding: 0; margin: 0; width: auto; box-shadow: none; text-transform: uppercase; }
 
         /* FX Canvas */
         #fx-canvas { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; pointer-events: none; z-index: 999; }
 
-        /* --- TOAST SYSTEM --- */
+        /* Toast Container */
         #toast-container {
             position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
-            display: flex; flex-direction: column; gap: 10px; z-index: 10000; pointer-events: none;
+            display: flex; flex-direction: column; gap: 10px; z-index: 10001; pointer-events: none;
         }
         .toast {
-            background: rgba(10, 10, 20, 0.9); backdrop-filter: blur(12px);
+            background: rgba(10, 10, 25, 0.95); backdrop-filter: blur(12px);
             border: 1px solid var(--glass-border); border-radius: 30px;
             padding: 12px 24px; color: #fff; font-weight: 600; font-size: 0.9rem;
             box-shadow: 0 10px 30px rgba(0,0,0,0.6);
@@ -98,98 +73,88 @@
         @keyframes slideInDown { from { transform: translateY(-60px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
         @keyframes fadeOut { to { opacity: 0; transform: translateY(-20px); } }
 
-        /* --- SCREEN ARCHITECTURE --- */
+        /* Screen Architecture */
         .screen {
             display: none; flex-direction: column; align-items: center; justify-content: flex-start;
-            height: 100%; width: 100%; padding: 30px 20px; overflow-y: auto;
+            height: 100%; width: 100%; padding: 40px 20px; overflow-y: auto;
             opacity: 0; transform: translateY(20px) scale(0.96);
             transition: opacity 0.4s ease, transform 0.4s ease;
         }
         .screen.active { display: flex; opacity: 1; transform: translateY(0) scale(1); }
 
-        /* --- GLASS POPUP MODALS & CARDS --- */
+        /* Glass Panel Modals */
         .glass-panel {
             background: var(--glass-bg); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
             border: 1px solid var(--glass-border); border-radius: 28px;
-            padding: 30px; width: 100%; max-width: 420px;
-            box-shadow: 0 25px 50px rgba(0,0,0,0.5); margin-bottom: 20px;
-            animation: modalPop 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+            padding: 30px; width: 100%; max-width: 440px;
+            box-shadow: 0 25px 50px rgba(0,0,0,0.5); margin-bottom: 20px; position: relative;
         }
 
-        @keyframes modalPop {
-            from { transform: scale(0.85); opacity: 0; }
-            to { transform: scale(1); opacity: 1; }
-        }
+        h1 { font-size: 2.3rem; font-weight: 800; text-align: center; margin-bottom: 8px; background: linear-gradient(to right, var(--accent-neon), var(--accent-pink)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        h2 { font-size: 1.3rem; font-weight: 600; margin-bottom: 16px; text-align: center; color: #fff; }
+        p { color: var(--text-muted); text-align: center; font-size: 0.92rem; margin-bottom: 20px; }
 
-        h1 { font-size: 2.4rem; font-weight: 800; text-align: center; margin-bottom: 8px; background: linear-gradient(to right, var(--accent-neon), var(--accent-pink)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-        h2 { font-size: 1.3rem; font-weight: 600; margin-bottom: 18px; text-align: center; color: #fff; }
-        p { color: var(--text-muted); text-align: center; font-size: 0.95rem; margin-bottom: 20px; }
-
-        /* Form Inputs & Buttons */
+        /* Inputs & Buttons */
         .input-group { width: 100%; margin-bottom: 15px; }
         .input-group label { display: block; font-size: 0.8rem; color: var(--accent-neon); margin-bottom: 6px; font-weight: 600; text-transform: uppercase; }
         
         input[type="text"], input[type="password"] {
             width: 100%; padding: 16px; border-radius: 16px; border: 2px solid transparent;
-            background: rgba(0,0,0,0.4); color: #fff; font-size: 1rem;
+            background: rgba(0,0,0,0.45); color: #fff; font-size: 1.05rem;
             outline: none; transition: all 0.3s ease; box-shadow: inset 0 2px 6px rgba(0,0,0,0.6);
+            text-align: center;
         }
-        input:focus { border-color: var(--accent-neon); background: rgba(0,0,0,0.6); }
+        input:focus { border-color: var(--accent-neon); background: rgba(0,0,0,0.65); }
 
         button {
             width: 100%; padding: 16px; border-radius: 16px; border: none;
             background: linear-gradient(45deg, var(--accent-neon), #00b3ff);
             color: #000; font-size: 1rem; font-weight: 800; text-transform: uppercase; letter-spacing: 1px;
-            cursor: pointer; transition: transform 0.15s, box-shadow 0.3s, background 0.3s;
+            cursor: pointer; transition: transform 0.15s, box-shadow 0.3s;
             box-shadow: 0 10px 25px rgba(0, 255, 204, 0.25); margin-bottom: 12px;
         }
         button:active { transform: translateY(3px) scale(0.98); }
         button.pink { background: linear-gradient(45deg, var(--accent-pink), #ff5500); color: #fff; box-shadow: 0 10px 25px rgba(255, 0, 127, 0.3); }
         button.secondary { background: rgba(255,255,255,0.08); color: #fff; box-shadow: none; border: 1px solid var(--glass-border); }
-        button:disabled { background: #222; color: #555; cursor: not-allowed; box-shadow: none; transform: none; }
+        button:disabled { background: #222 !important; color: #666 !important; cursor: not-allowed; box-shadow: none !important; transform: none !important; }
 
-        .text-link {
-            text-align: center; color: var(--accent-neon); font-size: 0.85rem;
-            font-weight: 600; cursor: pointer; text-decoration: underline; margin-top: 10px; display: block;
+        /* Party Code Display Box */
+        .code-display {
+            background: rgba(0,0,0,0.6); border: 2px dashed var(--accent-neon);
+            border-radius: 20px; padding: 15px; text-align: center; margin-bottom: 20px;
         }
-        .text-link:hover { color: #fff; }
+        .code-display .code-title { font-size: 0.8rem; color: var(--text-muted); letter-spacing: 2px; }
+        .code-display .code-value { font-size: 2.2rem; font-weight: 800; color: var(--accent-neon); letter-spacing: 6px; }
 
-        /* --- CIRCULAR SHRINKING TIMER CLOCK --- */
-        .timer-circle-wrap {
-            position: relative; width: 120px; height: 120px; margin: 0 auto 20px auto;
-            display: flex; align-items: center; justify-content: center;
-        }
-        .timer-svg { transform: rotate(-90deg); width: 100%; height: 100%; }
-        .timer-bg-circle { fill: none; stroke: rgba(255,255,255,0.1); stroke-width: 8; }
-        .timer-progress-circle {
-            fill: none; stroke: var(--accent-neon); stroke-width: 8;
-            stroke-dasharray: 283; stroke-dashoffset: 0;
-            stroke-linecap: round; transition: stroke-dashoffset 1s linear, stroke 0.3s ease;
-        }
-        .timer-text {
-            position: absolute; font-size: 1.8rem; font-weight: 800; color: #fff;
-            text-shadow: 0 0 10px var(--accent-neon);
+        /* --- FLOATING PROFILES ARENA --- */
+        #floating-arena {
+            width: 100%; height: 260px; background: rgba(0,0,0,0.4);
+            border-radius: 20px; border: 1px solid var(--glass-border);
+            position: relative; overflow: hidden; margin-bottom: 20px;
         }
 
-        /* --- STREAK & FIRE BADGE --- */
-        .streak-badge {
-            display: inline-flex; align-items: center; gap: 6px;
-            background: linear-gradient(45deg, #ff4500, #ff8c00);
-            color: #fff; padding: 4px 12px; border-radius: 20px;
-            font-size: 0.85rem; font-weight: 800; box-shadow: 0 4px 12px rgba(255, 69, 0, 0.4);
-            animation: firePulse 0.8s infinite alternate;
+        .profile-bubble {
+            position: absolute; width: 85px; height: 85px;
+            background: linear-gradient(135deg, rgba(255,255,255,0.15), rgba(255,255,255,0.05));
+            backdrop-filter: blur(10px); border: 2px solid var(--accent-neon);
+            border-radius: 50%; display: flex; flex-direction: column;
+            align-items: center; justify-content: center; color: #fff;
+            cursor: grab; touch-action: none; box-shadow: 0 8px 20px rgba(0,255,204,0.2);
+            animation: floatBob 3s ease-in-out infinite alternate;
+        }
+        .profile-bubble:active { cursor: grabbing; border-color: var(--accent-pink); }
+        .profile-bubble .p-avatar { font-size: 1.5rem; }
+        .profile-bubble .p-name { font-size: 0.75rem; font-weight: 700; max-width: 75px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+        @keyframes floatBob {
+            0% { transform: translateY(0px) rotate(-2deg); }
+            100% { transform: translateY(-12px) rotate(2deg); }
         }
 
-        @keyframes firePulse {
-            from { transform: scale(0.98); box-shadow: 0 2px 8px rgba(255, 69, 0, 0.4); }
-            to { transform: scale(1.06); box-shadow: 0 6px 18px rgba(255, 140, 0, 0.7); }
-        }
-
-        /* Leaderboard & Lists */
+        /* Leaderboard List */
         .list-container { width: 100%; max-height: 45vh; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; }
         .list-item { display: flex; justify-content: space-between; align-items: center; padding: 14px; background: rgba(0,0,0,0.35); border-radius: 16px; border: 1px solid var(--glass-border); }
         .list-item .name-box { display: flex; align-items: center; gap: 10px; font-weight: 600; }
-        .list-item .score-box { display: flex; align-items: center; gap: 8px; }
         .exp-tag { background: var(--accent-neon); color: #000; padding: 3px 10px; border-radius: 12px; font-weight: 800; font-size: 0.85rem; }
 
         .loader { border: 4px solid var(--glass-border); border-top: 4px solid var(--accent-neon); border-radius: 50%; width: 45px; height: 45px; animation: spin 1s linear infinite; }
@@ -198,23 +163,22 @@
 </head>
 <body>
 
-    <div id="intro-curtain">
-        <div class="logo-glow">NIZZLERS</div>
-        <p style="color: var(--text-muted); margin-top: 10px; font-weight: 600;">GAME NIGHT</p>
+    <div id="user-bar">
+        <span class="uname" id="bar-username">User</span>
+        <button class="btn-logout" id="btn-logout">Log Out</button>
     </div>
 
     <canvas id="fx-canvas"></canvas>
-    
     <div id="toast-container"></div>
 
     <div id="screen-auth" class="screen active">
-        <div class="glass-panel">
-            <h1 id="auth-title">Welcome</h1>
-            <p id="auth-subtitle">Sign in or create your profile to play</p>
+        <div class="glass-panel" style="margin-top: 50px;">
+            <h1>Nizzlers</h1>
+            <p>Enter your profile details to stay signed in</p>
             
             <div class="input-group">
                 <label>Username</label>
-                <input type="text" id="auth-user" placeholder="e.g., Lilo, Lana, Sue, Owen..." autocomplete="off">
+                <input type="text" id="auth-user" placeholder="e.g. Lilo, Lana, Owen..." autocomplete="off">
             </div>
 
             <div class="input-group">
@@ -222,99 +186,75 @@
                 <input type="password" id="auth-pass" placeholder="••••••••">
             </div>
 
-            <button id="btn-auth-submit">Continue</button>
-            <span class="text-link" id="auth-toggle">Already have an account? Sign In</span>
+            <button id="btn-auth-submit">Sign In / Register</button>
         </div>
     </div>
 
     <div id="screen-mode" class="screen">
         <div class="glass-panel">
             <h1>Game Night</h1>
-            <p>Select your mode for this session</p>
-            <button id="btn-mode-create" class="pink">🎮 Create a Game (Host)</button>
-            <button id="btn-mode-join">🚀 Join Existing Game</button>
-        </div>
-    </div>
+            <p>Create a party room or enter a code to join</p>
 
-    <div id="screen-contrib" class="screen">
-        <div class="glass-panel">
-            <h2>Add Your Question</h2>
-            <p>Contribute a question to the group pool before rounds begin!</p>
+            <button id="btn-mode-create" class="pink">🎮 Create New Game</button>
+            
+            <div style="margin: 20px 0; border-top: 1px solid var(--glass-border);"></div>
 
             <div class="input-group">
-                <label>Question</label>
-                <input type="text" id="contrib-q" placeholder="Who is most likely to...?">
+                <label>Join Game Code</label>
+                <input type="text" id="join-code-input" placeholder="e.g. 582914" maxlength="6" style="letter-spacing: 4px; font-weight: 800;">
             </div>
-            <div class="input-group">
-                <label>Option A</label>
-                <input type="text" id="contrib-a" placeholder="First Choice">
-            </div>
-            <div class="input-group">
-                <label>Option B</label>
-                <input type="text" id="contrib-b" placeholder="Second Choice">
-            </div>
-
-            <button id="btn-submit-q">Add Question to Pool</button>
-            <button id="btn-ready-lobby" class="secondary">Go to Game Lobby</button>
+            <button id="btn-mode-join">🚀 Join Game Code</button>
         </div>
     </div>
 
     <div id="screen-lobby" class="screen">
-        <div class="glass-panel" style="display: flex; flex-direction: column;">
-            <h2>Game Lobby</h2>
-            <p id="lobby-desc">Waiting for players to join and submit questions...</p>
-            <div class="list-container" id="lobby-list" style="flex-grow: 1;">
-                </div>
-            <button id="btn-add-more-q" class="secondary" style="margin-top: 15px;">➕ Submit A Question</button>
-            <button id="btn-start-rounds" class="pink" style="display: none; margin-top: 10px;">Start Rounds Now</button>
-        </div>
-    </div>
-
-    <div id="screen-host" class="screen">
         <div class="glass-panel">
-            <h2>Host Dashboard</h2>
-            <p>Pool Questions Available: <span id="pool-count-tag" style="color:var(--accent-neon); font-weight:800;">0</span></p>
+            <h2>Party Lobby</h2>
+            
+            <div class="code-display">
+                <div class="code-title">PARTY CODE</div>
+                <div class="code-value" id="party-code-tag">------</div>
+            </div>
 
-            <button id="btn-load-next-q">Deploy Next Pool Question</button>
-            <button id="btn-end-round" class="secondary" style="border-color: var(--error); color: var(--error);">End Round & Reveal Answer</button>
+            <p id="lobby-count-text">Waiting for players (0 / 3 min)...</p>
+
+            <div id="floating-arena">
+                </div>
+
+            <button id="btn-start-game" class="pink" disabled>Start Game Anyway (Need 3 Players)</button>
         </div>
-        <button class="secondary nav-to-leaderboard" style="max-width: 420px;">Show Leaderboard</button>
     </div>
 
     <div id="screen-player" class="screen">
         <div class="glass-panel">
-            <div class="timer-circle-wrap">
-                <svg class="timer-svg" viewBox="0 0 100 100">
-                    <circle class="timer-bg-circle" cx="50" cy="50" r="45"></circle>
-                    <circle id="timer-progress" class="timer-progress-circle" cx="50" cy="50" r="45"></circle>
-                </svg>
-                <div class="timer-text" id="timer-clock-text">15</div>
-            </div>
-
-            <h2 id="display-q" style="min-height: 50px; display: flex; align-items: center; justify-content: center;">Waiting for host to start...</h2>
+            <h2 id="display-q" style="min-height: 70px; display: flex; align-items: center; justify-content: center;">Waiting for host to deploy question...</h2>
         </div>
 
-        <div style="width: 100%; max-width: 420px; display: flex; flex-direction: column; gap: 12px;">
+        <div style="width: 100%; max-width: 440px; display: flex; flex-direction: column; gap: 12px;">
             <button id="btn-opt-a" class="answer-btn" onclick="submitAnswer('A')" disabled>Option A</button>
             <button id="btn-opt-b" class="answer-btn" onclick="submitAnswer('B')" disabled>Option B</button>
         </div>
 
-        <button class="secondary nav-to-leaderboard" style="max-width: 420px; margin-top: 20px;">View Rankings</button>
+        <div id="host-game-controls" style="display:none; width: 100%; max-width: 440px; margin-top: 20px;">
+            <button id="btn-host-next-q" class="pink">Push Next Question</button>
+            <button id="btn-host-end-round" class="secondary" style="border-color: var(--error); color: var(--error);">End Round & Award EXP</button>
+        </div>
+
+        <button class="secondary nav-to-leaderboard" style="max-width: 440px; margin-top: 20px;">View Leaderboard</button>
     </div>
 
     <div id="screen-leaderboard" class="screen">
         <div class="glass-panel" style="max-height: 80vh; display: flex; flex-direction: column;">
             <h1>Leaderboard</h1>
-            <p>Live rankings & streak multipliers</p>
             <div class="list-container" id="leaderboard-list" style="flex-grow: 1;">
                 </div>
-            <button id="btn-back-game" style="margin-top: 15px;">Back to Game</button>
+            <button id="btn-back-game" style="margin-top: 15px;">Return to Game</button>
         </div>
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-        import { getFirestore, doc, setDoc, onSnapshot, updateDoc, getDoc, collection, getDocs, writeBatch, addDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+        import { getFirestore, doc, setDoc, onSnapshot, updateDoc, getDoc, collection, getDocs, writeBatch } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyCoxu99FykhoDnyZiVkPaSS2cC03KmG9b0",
@@ -328,39 +268,13 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
-        // Global State
+        // State Variables
         let myPlayerId = localStorage.getItem('nizzler_id');
         let myUsername = localStorage.getItem('nizzler_name');
+        let currentPartyCode = localStorage.getItem('nizzler_party_code');
         let isHost = false;
-        let authMode = 'register';
-        let timerInterval = null;
-        let currentPoolQuestions = [];
 
-        // --- AUDIO SYNTHESIZER ---
-        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        function playSfx(type) {
-            if (audioCtx.state === 'suspended') audioCtx.resume();
-            const osc = audioCtx.createOscillator();
-            const gain = audioCtx.createGain();
-            osc.connect(gain); gain.connect(audioCtx.destination);
-
-            if (type === 'click') {
-                osc.frequency.setValueAtTime(500, audioCtx.currentTime);
-                osc.frequency.exponentialRampToValueAtTime(800, audioCtx.currentTime + 0.08);
-                gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
-                gain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.08);
-                osc.start(); osc.stop(audioCtx.currentTime + 0.08);
-            } else if (type === 'win') {
-                osc.type = 'triangle';
-                osc.frequency.setValueAtTime(300, audioCtx.currentTime);
-                osc.frequency.setValueAtTime(600, audioCtx.currentTime + 0.1);
-                gain.gain.setValueAtTime(0.15, audioCtx.currentTime);
-                gain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.35);
-                osc.start(); osc.stop(audioCtx.currentTime + 0.35);
-            }
-        }
-
-        // --- SCREEN & TOAST SYSTEM ---
+        // --- SCREEN NAVIGATION & UTILS ---
         function switchScreen(id) {
             document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
             setTimeout(() => document.getElementById(id).classList.add('active'), 50);
@@ -375,276 +289,259 @@
             setTimeout(() => toast.remove(), 2800);
         }
 
-        // --- AUTH TOGGLE ---
-        const authToggle = document.getElementById('auth-toggle');
-        authToggle.addEventListener('click', () => {
-            playSfx('click');
-            if (authMode === 'register') {
-                authMode = 'login';
-                document.getElementById('auth-title').innerText = "Sign In";
-                document.getElementById('auth-subtitle').innerText = "Enter your username and password";
-                authToggle.innerText = "Need a new profile? Register";
+        // --- PERSISTENT AUTHENTICATION ENGINE ---
+        function checkPersistentAuth() {
+            if (myPlayerId && myUsername) {
+                document.getElementById('user-bar').style.display = 'flex';
+                document.getElementById('bar-username').innerText = myUsername;
+                switchScreen('screen-mode');
             } else {
-                authMode = 'register';
-                document.getElementById('auth-title').innerText = "Welcome";
-                document.getElementById('auth-subtitle').innerText = "Sign in or create your profile to play";
-                authToggle.innerText = "Already have an account? Sign In";
+                document.getElementById('user-bar').style.display = 'none';
+                switchScreen('screen-auth');
             }
-        });
+        }
 
         document.getElementById('btn-auth-submit').addEventListener('click', async () => {
-            playSfx('click');
             const u = document.getElementById('auth-user').value.trim();
             const p = document.getElementById('auth-pass').value.trim();
-            if(!u || !p) return showToast("Enter username and password!", "error");
+            if (!u || !p) return showToast("Enter username and password!", "error");
 
             myUsername = u;
             myPlayerId = 'usr_' + u.toLowerCase().replace(/\s+/g, '');
 
-            const userRef = doc(db, "players", myPlayerId);
-            const userSnap = await getDoc(userRef);
+            const pRef = doc(db, "users", myPlayerId);
+            const pSnap = await getDoc(pRef);
 
-            if (authMode === 'register') {
-                if (userSnap.exists()) return showToast("Username taken! Try Sign In.", "error");
-                await setDoc(userRef, {
-                    name: myUsername, pass: p, exp: 0, streak: 0, lastAnswer: "", isHost: false
-                });
-            } else {
-                if (!userSnap.exists() || userSnap.data().pass !== p) {
-                    return showToast("Invalid credentials!", "error");
-                }
+            if (!pSnap.exists()) {
+                await setDoc(pRef, { name: u, pass: p, createdAt: Date.now() });
+            } else if (pSnap.data().pass !== p) {
+                return showToast("Incorrect password for this user!", "error");
             }
 
             localStorage.setItem('nizzler_id', myPlayerId);
             localStorage.setItem('nizzler_name', myUsername);
 
-            showToast(`Authenticated as ${myUsername}!`, "success");
-            setupListeners();
-            switchScreen('screen-mode');
+            checkPersistentAuth();
+            showToast(`Logged in as ${myUsername}!`, "success");
         });
 
-        // --- MODE SELECTION ---
-        document.getElementById('btn-mode-create').addEventListener('click', async () => {
-            playSfx('click');
-            isHost = true;
-            await updateDoc(doc(db, "players", myPlayerId), { isHost: true });
-            await setDoc(doc(db, "game", "state"), { status: 'lobby' });
-            switchScreen('screen-contrib');
+        document.getElementById('btn-logout').addEventListener('click', () => {
+            localStorage.clear();
+            myPlayerId = null; myUsername = null; currentPartyCode = null;
+            checkPersistentAuth();
+            showToast("Logged out successfully.", "info");
         });
 
-        document.getElementById('btn-mode-join').addEventListener('click', () => {
-            playSfx('click');
-            isHost = false;
-            switchScreen('screen-contrib');
-        });
-
-        // --- QUESTION CONTRIBUTION ---
-        document.getElementById('btn-submit-q').addEventListener('click', async () => {
-            playSfx('click');
-            const q = document.getElementById('contrib-q').value.trim();
-            const a = document.getElementById('contrib-a').value.trim();
-            const b = document.getElementById('contrib-b').value.trim();
-            if(!q || !a || !b) return showToast("Fill out your question & choices!", "error");
-
-            await addDoc(collection(db, "questions"), {
-                question: q, optA: a, optB: b, author: myUsername, createdAt: Date.now()
-            });
-
-            document.getElementById('contrib-q').value = '';
-            document.getElementById('contrib-a').value = '';
-            document.getElementById('contrib-b').value = '';
-
-            showToast("Question added to the group pool! 🔥", "fire");
-        });
-
-        document.getElementById('btn-ready-lobby').addEventListener('click', () => {
-            playSfx('click');
-            switchScreen('screen-lobby');
-        });
-
-        document.getElementById('btn-add-more-q').addEventListener('click', () => {
-            playSfx('click');
-            switchScreen('screen-contrib');
-        });
-
-        // --- CIRCULAR TIMER ENGINE ---
-        function startCircleTimer(seconds) {
-            clearInterval(timerInterval);
-            let timeLeft = seconds;
-            const progressCircle = document.getElementById('timer-progress');
-            const timerText = document.getElementById('timer-clock-text');
-            const totalDash = 283; // 2 * PI * 45
-
-            timerText.innerText = timeLeft;
-            progressCircle.style.strokeDashoffset = 0;
-            progressCircle.style.stroke = "var(--accent-neon)";
-
-            timerInterval = setInterval(() => {
-                timeLeft--;
-                timerText.innerText = Math.max(0, timeLeft);
-                const offset = totalDash - (timeLeft / seconds) * totalDash;
-                progressCircle.style.strokeDashoffset = offset;
-
-                if (timeLeft <= 5) progressCircle.style.stroke = "var(--error)";
-
-                if (timeLeft <= 0) {
-                    clearInterval(timerInterval);
-                    document.getElementById('btn-opt-a').disabled = true;
-                    document.getElementById('btn-opt-b').disabled = true;
-                }
-            }, 1000);
+        // --- PARTY CODE ENGINE ---
+        function generatePartyCode() {
+            return Math.floor(100000 + Math.random() * 900000).toString();
         }
 
-        // --- REAL-TIME LISTENERS ---
-        function setupListeners() {
-            // Player & Leaderboard Sync
-            onSnapshot(collection(db, "players"), (snapshot) => {
+        // CREATE GAME ROOM
+        document.getElementById('btn-mode-create').addEventListener('click', async () => {
+            currentPartyCode = generatePartyCode();
+            isHost = true;
+            localStorage.setItem('nizzler_party_code', currentPartyCode);
+
+            // Create Party Doc
+            await setDoc(doc(db, "parties", currentPartyCode), {
+                hostId: myPlayerId,
+                status: 'lobby',
+                created: Date.now(),
+                question: "", optA: "", optB: "", correct: "A"
+            });
+
+            // Join Party as Host Player
+            await setDoc(doc(db, "parties", currentPartyCode, "players", myPlayerId), {
+                name: myUsername, exp: 0, lastAnswer: "", isHost: true, x: 20, y: 20
+            });
+
+            setupPartyListeners();
+            switchScreen('screen-lobby');
+            showToast(`Party Room ${currentPartyCode} Created!`, "success");
+        });
+
+        // JOIN GAME ROOM
+        document.getElementById('btn-mode-join').addEventListener('click', async () => {
+            const code = document.getElementById('join-code-input').value.trim();
+            if (code.length !== 6) return showToast("Enter valid 6-digit code!", "error");
+
+            const partyRef = doc(db, "parties", code);
+            const partySnap = await getDoc(partyRef);
+
+            if (!partySnap.exists()) return showToast("Party code not found!", "error");
+
+            currentPartyCode = code;
+            isHost = false;
+            localStorage.setItem('nizzler_party_code', currentPartyCode);
+
+            // Join Party as Player
+            await setDoc(doc(db, "parties", currentPartyCode, "players", myPlayerId), {
+                name: myUsername, exp: 0, lastAnswer: "", isHost: false, x: Math.random()*150, y: Math.random()*100
+            });
+
+            setupPartyListeners();
+            switchScreen('screen-lobby');
+            showToast(`Joined Party ${currentPartyCode}!`, "success");
+        });
+
+        // --- REALTIME LOBBY & FLOATING BUBBLES ENGINE ---
+        function setupPartyListeners() {
+            if (!currentPartyCode) return;
+            document.getElementById('party-code-tag').innerText = currentPartyCode;
+
+            // Listen to Players & Render Floating Bubbles
+            onSnapshot(collection(db, "parties", currentPartyCode, "players"), (snapshot) => {
                 const players = [];
-                snapshot.forEach(d => players.push(d.data()));
+                const arena = document.getElementById('floating-arena');
+                arena.innerHTML = ''; // Re-render bubbles
 
-                // Lobby list
-                const lobbyList = document.getElementById('lobby-list');
-                lobbyList.innerHTML = players.map(p => `
-                    <div class="list-item">
-                        <div class="name-box">🎮 ${p.name} ${p.isHost ? '<span style="color:var(--accent-pink)">(Host)</span>' : ''}</div>
-                        ${p.streak > 1 ? `<div class="streak-badge">🔥 ${p.streak}</div>` : ''}
-                    </div>
-                `).join('');
+                snapshot.forEach(d => {
+                    const p = d.data();
+                    players.push(p);
 
-                // Leaderboard List
+                    // Create Floating Bubble
+                    const bubble = document.createElement('div');
+                    bubble.className = 'profile-bubble';
+                    bubble.style.left = `${p.x || 20}px`;
+                    bubble.style.top = `${p.y || 20}px`;
+                    bubble.innerHTML = `
+                        <div class="p-avatar">${p.isHost ? '👑' : '🎮'}</div>
+                        <div class="p-name">${p.name}</div>
+                    `;
+
+                    // Drag & Drop Functionality for Host
+                    if (isHost) {
+                        makeBubbleDraggable(bubble, d.id);
+                    }
+
+                    arena.appendChild(bubble);
+                });
+
+                // Update Player Count & Start Game Button Rule (Min 3 players)
+                const countText = document.getElementById('lobby-count-text');
+                const startBtn = document.getElementById('btn-start-game');
+
+                countText.innerText = `Players Joined: (${players.length} / 3 min)`;
+
+                if (isHost) {
+                    startBtn.style.display = 'block';
+                    if (players.length >= 3) {
+                        startBtn.disabled = false;
+                        startBtn.innerText = "🚀 Start Game Anyway";
+                    } else {
+                        startBtn.disabled = true;
+                        startBtn.innerText = `Start Game Anyway (Need ${3 - players.length} More)`;
+                    }
+                } else {
+                    startBtn.style.display = 'none';
+                }
+
+                // Render Leaderboard List
                 players.sort((a, b) => b.exp - a.exp);
-                const leadList = document.getElementById('leaderboard-list');
-                leadList.innerHTML = players.map((p, i) => `
+                document.getElementById('leaderboard-list').innerHTML = players.map((p, i) => `
                     <div class="list-item">
                         <div class="name-box">${i === 0 ? '👑' : i + 1 + '.'} ${p.name}</div>
-                        <div class="score-box">
-                            ${p.streak > 1 ? `<div class="streak-badge">🔥 ${p.streak}</div>` : ''}
-                            <span class="exp-tag">${p.exp} XP</span>
-                        </div>
+                        <div class="exp-tag">${p.exp} XP</div>
                     </div>
                 `).join('');
             });
 
-            // Question Pool Listener
-            onSnapshot(collection(db, "questions"), (snap) => {
-                currentPoolQuestions = [];
-                snap.forEach(d => currentPoolQuestions.push({ id: d.id, ...d.data() }));
-                document.getElementById('pool-count-tag').innerText = currentPoolQuestions.length;
-            });
-
-            // Game State Listener
-            onSnapshot(doc(db, "game", "state"), (snap) => {
-                if(!snap.exists()) return;
+            // Listen to Game Room State
+            onSnapshot(doc(db, "parties", currentPartyCode), (snap) => {
+                if (!snap.exists()) return;
                 const data = snap.data();
 
-                if (data.status === 'lobby') {
-                    if(isHost) document.getElementById('btn-start-rounds').style.display = 'block';
-                } else if (data.status === 'active') {
-                    switchScreen(isHost ? 'screen-host' : 'screen-player');
-                    document.getElementById('display-q').innerText = data.question;
-                    document.getElementById('btn-opt-a').innerText = data.optA;
-                    document.getElementById('btn-opt-b').innerText = data.optB;
+                if (data.status === 'active') {
+                    switchScreen('screen-player');
+                    document.getElementById('display-q').innerText = data.question || "Round Started!";
+                    document.getElementById('btn-opt-a').innerText = data.optA || "Option A";
+                    document.getElementById('btn-opt-b').innerText = data.optB || "Option B";
+                    
+                    const a = document.getElementById('btn-opt-a');
+                    const b = document.getElementById('btn-opt-b');
+                    a.disabled = false; b.disabled = false;
+                    a.style.opacity = '1'; b.style.opacity = '1';
 
-                    if (!isHost) {
-                        const a = document.getElementById('btn-opt-a');
-                        const b = document.getElementById('btn-opt-b');
-                        a.disabled = false; b.disabled = false;
-                        a.style.opacity = '1'; b.style.opacity = '1';
-                        startCircleTimer(15);
-                    }
-                } else if (data.status === 'revealed') {
-                    if (!isHost) {
-                        clearInterval(timerInterval);
-                        document.getElementById('btn-opt-a').disabled = true;
-                        document.getElementById('btn-opt-b').disabled = true;
-
-                        getDoc(doc(db, "players", myPlayerId)).then(pSnap => {
-                            const pData = pSnap.data();
-                            if(pData.lastAnswer === data.correct) {
-                                playSfx('win');
-                                showToast(`Correct! 🔥 Streak: ${pData.streak}`, "fire");
-                            } else {
-                                showToast("Incorrect! Streak reset.", "error");
-                            }
-                        });
-                    }
+                    if (isHost) document.getElementById('host-game-controls').style.display = 'block';
                 }
             });
         }
 
-        // --- HOST ACTIONS ---
-        document.getElementById('btn-start-rounds').addEventListener('click', () => {
-            playSfx('click');
-            switchScreen('screen-host');
-        });
+        // --- DRAG BUBBLE LOGIC ---
+        function makeBubbleDraggable(element, playerId) {
+            let active = false, currentX, currentY, initialX, initialY;
 
-        document.getElementById('btn-load-next-q').addEventListener('click', async () => {
-            if (currentPoolQuestions.length === 0) return showToast("No questions left in pool!", "error");
-            playSfx('click');
+            element.addEventListener('mousedown', dragStart);
+            element.addEventListener('touchstart', dragStart, { passive: true });
 
-            const nextQ = currentPoolQuestions[0]; // Take first from pool
-            const correctAns = Math.random() > 0.5 ? 'A' : 'B'; // Randomly set answer key
-
-            // Reset player answers
-            const batch = writeBatch(db);
-            const pSnap = await getDocs(collection(db, "players"));
-            pSnap.forEach(d => batch.update(d.ref, { lastAnswer: "" }));
-
-            // Update state
-            batch.set(doc(db, "game", "state"), {
-                question: nextQ.question, optA: nextQ.optA, optB: nextQ.optB,
-                correct: correctAns, status: 'active'
-            });
-
-            await batch.commit();
-            showToast("Round Deployed!", "success");
-        });
-
-        document.getElementById('btn-end-round').addEventListener('click', async () => {
-            playSfx('click');
-            const stateSnap = await getDoc(doc(db, "game", "state"));
-            const correctAns = stateSnap.data().correct;
-
-            const batch = writeBatch(db);
-            const pSnap = await getDocs(collection(db, "players"));
-
-            pSnap.forEach(d => {
-                const data = d.data();
-                if (!data.isHost) {
-                    if (data.lastAnswer === correctAns) {
-                        const newStreak = (data.streak || 0) + 1;
-                        const streakBonus = newStreak * 20;
-                        batch.update(d.ref, { exp: data.exp + 100 + streakBonus, streak: newStreak });
-                    } else {
-                        batch.update(d.ref, { streak: 0 });
-                    }
+            function dragStart(e) {
+                if (e.type === "touchstart") {
+                    initialX = e.touches[0].clientX - element.offsetLeft;
+                    initialY = e.touches[0].clientY - element.offsetTop;
+                } else {
+                    initialX = e.clientX - element.offsetLeft;
+                    initialY = e.clientY - element.offsetTop;
                 }
-            });
+                active = true;
+                window.addEventListener('mousemove', drag);
+                window.addEventListener('touchmove', drag, { passive: true });
+                window.addEventListener('mouseup', dragEnd);
+                window.addEventListener('touchend', dragEnd);
+            }
 
-            batch.update(doc(db, "game", "state"), { status: 'revealed' });
-            await batch.commit();
-            showToast("Round ended & streaks updated!", "fire");
+            function drag(e) {
+                if (!active) return;
+                if (e.type === "touchmove") {
+                    currentX = e.touches[0].clientX - initialX;
+                    currentY = e.touches[0].clientY - initialY;
+                } else {
+                    currentX = e.clientX - initialX;
+                    currentY = e.clientY - initialY;
+                }
+                element.style.left = `${currentX}px`;
+                element.style.top = `${currentY}px`;
+            }
+
+            function dragEnd() {
+                active = false;
+                window.removeEventListener('mousemove', drag);
+                window.removeEventListener('touchmove', drag);
+                window.removeEventListener('mouseup', dragEnd);
+                window.removeEventListener('touchend', dragEnd);
+
+                // Save new position to Firestore
+                updateDoc(doc(db, "parties", currentPartyCode, "players", playerId), {
+                    x: currentX, y: currentY
+                });
+            }
+        }
+
+        // --- HOST GAME CONTROLS ---
+        document.getElementById('btn-start-game').addEventListener('click', async () => {
+            await updateDoc(doc(db, "parties", currentPartyCode), {
+                status: 'active',
+                question: 'Who is most likely to win this game?',
+                optA: 'Option A', optB: 'Option B'
+            });
         });
 
-        // --- PLAYER ANSWER SUBMISSION ---
         window.submitAnswer = async function(choice) {
-            playSfx('click');
             document.getElementById('btn-opt-a').disabled = true;
             document.getElementById('btn-opt-b').disabled = true;
+            if (choice === 'A') document.getElementById('btn-opt-b').style.opacity = '0.3';
+            if (choice === 'B') document.getElementById('btn-opt-a').style.opacity = '0.3';
 
-            const btnA = document.getElementById('btn-opt-a');
-            const btnB = document.getElementById('btn-opt-b');
-            if (choice === 'A') btnB.style.opacity = '0.3';
-            if (choice === 'B') btnA.style.opacity = '0.3';
-
-            await updateDoc(doc(db, "players", myPlayerId), { lastAnswer: choice });
-            showToast("Answer locked in!", "success");
+            await updateDoc(doc(db, "parties", currentPartyCode, "players", myPlayerId), { lastAnswer: choice });
+            showToast("Answer locked!", "success");
         };
 
         // Navigation
         document.querySelectorAll('.nav-to-leaderboard').forEach(b => b.addEventListener('click', () => switchScreen('screen-leaderboard')));
-        document.getElementById('btn-back-game').addEventListener('click', () => switchScreen(isHost ? 'screen-host' : 'screen-player'));
+        document.getElementById('btn-back-game').addEventListener('click', () => switchScreen('screen-player'));
 
+        // Boot
+        checkPersistentAuth();
     </script>
 </body>
 </html>
