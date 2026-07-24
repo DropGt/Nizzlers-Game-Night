@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Nizzlers Game Night - Party Edition</title>
+    <title>Nizzlers Game Night - Auto-Reconnect & Host Transfer</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;800&display=swap" rel="stylesheet">
     <style>
         /* --- GLOBAL STYLES & THEMING --- */
@@ -50,9 +50,6 @@
         }
         #user-bar .uname { font-weight: 700; color: var(--accent-neon); font-size: 0.9rem; }
         #user-bar .btn-logout { background: transparent; color: var(--error); border: none; font-size: 0.8rem; font-weight: 700; cursor: pointer; padding: 0; margin: 0; width: auto; box-shadow: none; text-transform: uppercase; }
-
-        /* FX Canvas */
-        #fx-canvas { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; pointer-events: none; z-index: 999; }
 
         /* Toast Container */
         #toast-container {
@@ -115,6 +112,7 @@
         }
         button:active { transform: translateY(3px) scale(0.98); }
         button.pink { background: linear-gradient(45deg, var(--accent-pink), #ff5500); color: #fff; box-shadow: 0 10px 25px rgba(255, 0, 127, 0.3); }
+        button.rejoin-btn { background: linear-gradient(45deg, #00e676, #00b0ff); color: #000; box-shadow: 0 10px 25px rgba(0, 230, 118, 0.3); }
         button.secondary { background: rgba(255,255,255,0.08); color: #fff; box-shadow: none; border: 1px solid var(--glass-border); }
         button:disabled { background: #222 !important; color: #666 !important; cursor: not-allowed; box-shadow: none !important; transform: none !important; }
 
@@ -156,9 +154,6 @@
         .list-item { display: flex; justify-content: space-between; align-items: center; padding: 14px; background: rgba(0,0,0,0.35); border-radius: 16px; border: 1px solid var(--glass-border); }
         .list-item .name-box { display: flex; align-items: center; gap: 10px; font-weight: 600; }
         .exp-tag { background: var(--accent-neon); color: #000; padding: 3px 10px; border-radius: 12px; font-weight: 800; font-size: 0.85rem; }
-
-        .loader { border: 4px solid var(--glass-border); border-top: 4px solid var(--accent-neon); border-radius: 50%; width: 45px; height: 45px; animation: spin 1s linear infinite; }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
 </head>
 <body>
@@ -168,7 +163,6 @@
         <button class="btn-logout" id="btn-logout">Log Out</button>
     </div>
 
-    <canvas id="fx-canvas"></canvas>
     <div id="toast-container"></div>
 
     <div id="screen-auth" class="screen active">
@@ -193,7 +187,9 @@
     <div id="screen-mode" class="screen">
         <div class="glass-panel">
             <h1>Game Night</h1>
-            <p>Create a party room or enter a code to join</p>
+            <p>Create a party room, enter a code, or rejoin ongoing party</p>
+
+            <button id="btn-rejoin-party" class="rejoin-btn" style="display: none;">↩️ Rejoin Party (<span id="rejoin-code-text">------</span>)</button>
 
             <button id="btn-mode-create" class="pink">🎮 Create New Game</button>
             
@@ -222,6 +218,7 @@
                 </div>
 
             <button id="btn-start-game" class="pink" disabled>Start Game Anyway (Need 3 Players)</button>
+            <button id="btn-leave-party" class="secondary" style="border-color: var(--error); color: var(--error);">Leave Party Room</button>
         </div>
     </div>
 
@@ -254,7 +251,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-        import { getFirestore, doc, setDoc, onSnapshot, updateDoc, getDoc, collection, getDocs, writeBatch } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+        import { getFirestore, doc, setDoc, onSnapshot, updateDoc, getDoc, collection, deleteDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyCoxu99FykhoDnyZiVkPaSS2cC03KmG9b0",
@@ -268,13 +265,15 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
-        // State Variables
+        // State
         let myPlayerId = localStorage.getItem('nizzler_id');
         let myUsername = localStorage.getItem('nizzler_name');
         let currentPartyCode = localStorage.getItem('nizzler_party_code');
         let isHost = false;
+        let unsubscribeParty = null;
+        let unsubscribePlayers = null;
 
-        // --- SCREEN NAVIGATION & UTILS ---
+        // UI Helpers
         function switchScreen(id) {
             document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
             setTimeout(() => document.getElementById(id).classList.add('active'), 50);
@@ -289,11 +288,23 @@
             setTimeout(() => toast.remove(), 2800);
         }
 
-        // --- PERSISTENT AUTHENTICATION ENGINE ---
-        function checkPersistentAuth() {
+        // --- AUTH & RECONNECTION DETECTOR ---
+        async function checkPersistentAuth() {
             if (myPlayerId && myUsername) {
                 document.getElementById('user-bar').style.display = 'flex';
                 document.getElementById('bar-username').innerText = myUsername;
+                
+                // Check if user has an active party to rejoin
+                if (currentPartyCode) {
+                    const partySnap = await getDoc(doc(db, "parties", currentPartyCode));
+                    if (partySnap.exists()) {
+                        document.getElementById('rejoin-code-text').innerText = currentPartyCode;
+                        document.getElementById('btn-rejoin-party').style.display = 'block';
+                    } else {
+                        localStorage.removeItem('nizzler_party_code');
+                        currentPartyCode = null;
+                    }
+                }
                 switchScreen('screen-mode');
             } else {
                 document.getElementById('user-bar').style.display = 'none';
@@ -325,57 +336,66 @@
             showToast(`Logged in as ${myUsername}!`, "success");
         });
 
-        document.getElementById('btn-logout').addEventListener('click', () => {
+        document.getElementById('btn-logout').addEventListener('click', async () => {
+            await leaveCurrentParty();
             localStorage.clear();
             myPlayerId = null; myUsername = null; currentPartyCode = null;
             checkPersistentAuth();
             showToast("Logged out successfully.", "info");
         });
 
-        // --- PARTY CODE ENGINE ---
-        function generatePartyCode() {
-            return Math.floor(100000 + Math.random() * 900000).toString();
-        }
+        // REJOIN PARTY HANDLER
+        document.getElementById('btn-rejoin-party').addEventListener('click', async () => {
+            if (!currentPartyCode) return;
+            const partySnap = await getDoc(doc(db, "parties", currentPartyCode));
+            if (!partySnap.exists()) return showToast("Party no longer exists!", "error");
 
-        // CREATE GAME ROOM
+            const partyData = partySnap.data();
+            isHost = (partyData.hostId === myPlayerId);
+
+            // Re-register player in party list if missing
+            await setDoc(doc(db, "parties", currentPartyCode, "players", myPlayerId), {
+                name: myUsername, exp: 0, lastAnswer: "", isHost: isHost, x: 30, y: 30
+            }, { merge: true });
+
+            setupPartyListeners();
+            switchScreen(partyData.status === 'active' ? 'screen-player' : 'screen-lobby');
+            showToast(`Rejoined Party ${currentPartyCode}!`, "success");
+        });
+
+        // PARTY CREATION & JOINING
+        function generatePartyCode() { return Math.floor(100000 + Math.random() * 900000).toString(); }
+
         document.getElementById('btn-mode-create').addEventListener('click', async () => {
             currentPartyCode = generatePartyCode();
             isHost = true;
             localStorage.setItem('nizzler_party_code', currentPartyCode);
 
-            // Create Party Doc
             await setDoc(doc(db, "parties", currentPartyCode), {
-                hostId: myPlayerId,
-                status: 'lobby',
-                created: Date.now(),
-                question: "", optA: "", optB: "", correct: "A"
+                hostId: myPlayerId, status: 'lobby', created: Date.now(),
+                question: "", optA: "", optB: ""
             });
 
-            // Join Party as Host Player
             await setDoc(doc(db, "parties", currentPartyCode, "players", myPlayerId), {
                 name: myUsername, exp: 0, lastAnswer: "", isHost: true, x: 20, y: 20
             });
 
             setupPartyListeners();
             switchScreen('screen-lobby');
-            showToast(`Party Room ${currentPartyCode} Created!`, "success");
+            showToast(`Party ${currentPartyCode} Created!`, "success");
         });
 
-        // JOIN GAME ROOM
         document.getElementById('btn-mode-join').addEventListener('click', async () => {
             const code = document.getElementById('join-code-input').value.trim();
             if (code.length !== 6) return showToast("Enter valid 6-digit code!", "error");
 
-            const partyRef = doc(db, "parties", code);
-            const partySnap = await getDoc(partyRef);
-
+            const partySnap = await getDoc(doc(db, "parties", code));
             if (!partySnap.exists()) return showToast("Party code not found!", "error");
 
             currentPartyCode = code;
             isHost = false;
             localStorage.setItem('nizzler_party_code', currentPartyCode);
 
-            // Join Party as Player
             await setDoc(doc(db, "parties", currentPartyCode, "players", myPlayerId), {
                 name: myUsername, exp: 0, lastAnswer: "", isHost: false, x: Math.random()*150, y: Math.random()*100
             });
@@ -385,22 +405,61 @@
             showToast(`Joined Party ${currentPartyCode}!`, "success");
         });
 
-        // --- REALTIME LOBBY & FLOATING BUBBLES ENGINE ---
+        // --- REALTIME PARTY LISTENERS & HOST TRANSFER ENGINE ---
         function setupPartyListeners() {
             if (!currentPartyCode) return;
             document.getElementById('party-code-tag').innerText = currentPartyCode;
 
-            // Listen to Players & Render Floating Bubbles
-            onSnapshot(collection(db, "parties", currentPartyCode, "players"), (snapshot) => {
+            // Unsubscribe old listeners if active
+            if(unsubscribeParty) unsubscribeParty();
+            if(unsubscribePlayers) unsubscribePlayers();
+
+            // 1. Party Room Listener
+            unsubscribeParty = onSnapshot(doc(db, "parties", currentPartyCode), (snap) => {
+                if (!snap.exists()) {
+                    showToast("Party has been closed.", "error");
+                    leaveCurrentParty();
+                    return;
+                }
+                const data = snap.data();
+
+                // Check if Host status migrated to me
+                if (data.hostId === myPlayerId && !isHost) {
+                    isHost = true;
+                    showToast("👑 You are now the Party Host!", "fire");
+                    updateDoc(doc(db, "parties", currentPartyCode, "players", myPlayerId), { isHost: true });
+                }
+
+                if (data.status === 'active') {
+                    switchScreen('screen-player');
+                    document.getElementById('display-q').innerText = data.question || "Round Started!";
+                    document.getElementById('btn-opt-a').innerText = data.optA || "Option A";
+                    document.getElementById('btn-opt-b').innerText = data.optB || "Option B";
+                    
+                    document.getElementById('btn-opt-a').disabled = false;
+                    document.getElementById('btn-opt-b').disabled = false;
+                    document.getElementById('btn-opt-a').style.opacity = '1';
+                    document.getElementById('btn-opt-b').style.opacity = '1';
+
+                    if (isHost) document.getElementById('host-game-controls').style.display = 'block';
+                }
+            });
+
+            // 2. Players Listener & Host Migration Checking
+            unsubscribePlayers = onSnapshot(collection(db, "parties", currentPartyCode, "players"), async (snapshot) => {
                 const players = [];
                 const arena = document.getElementById('floating-arena');
-                arena.innerHTML = ''; // Re-render bubbles
+                arena.innerHTML = '';
+
+                let hasActiveHost = false;
 
                 snapshot.forEach(d => {
-                    const p = d.data();
+                    const p = { id: d.id, ...d.data() };
                     players.push(p);
 
-                    // Create Floating Bubble
+                    if (p.isHost) hasActiveHost = true;
+
+                    // Render Bubble
                     const bubble = document.createElement('div');
                     bubble.className = 'profile-bubble';
                     bubble.style.left = `${p.x || 20}px`;
@@ -410,19 +469,21 @@
                         <div class="p-name">${p.name}</div>
                     `;
 
-                    // Drag & Drop Functionality for Host
-                    if (isHost) {
-                        makeBubbleDraggable(bubble, d.id);
-                    }
-
+                    if (isHost) makeBubbleDraggable(bubble, p.id);
                     arena.appendChild(bubble);
                 });
 
-                // Update Player Count & Start Game Button Rule (Min 3 players)
-                const countText = document.getElementById('lobby-count-text');
-                const startBtn = document.getElementById('btn-start-game');
+                // AUTOMATIC HOST TRANSFER LOGIC
+                // If Host left, pick a random remaining player to become the new Host!
+                if (!hasActiveHost && players.length > 0) {
+                    const randomNewHost = players[Math.floor(Math.random() * players.length)];
+                    await updateDoc(doc(db, "parties", currentPartyCode), { hostId: randomNewHost.id });
+                    await updateDoc(doc(db, "parties", currentPartyCode, "players", randomNewHost.id), { isHost: true });
+                }
 
-                countText.innerText = `Players Joined: (${players.length} / 3 min)`;
+                // Lobby Rules (3 Player Min)
+                const startBtn = document.getElementById('btn-start-game');
+                document.getElementById('lobby-count-text').innerText = `Players Joined: (${players.length} / 3 min)`;
 
                 if (isHost) {
                     startBtn.style.display = 'block';
@@ -437,7 +498,7 @@
                     startBtn.style.display = 'none';
                 }
 
-                // Render Leaderboard List
+                // Leaderboard Update
                 players.sort((a, b) => b.exp - a.exp);
                 document.getElementById('leaderboard-list').innerHTML = players.map((p, i) => `
                     <div class="list-item">
@@ -446,27 +507,26 @@
                     </div>
                 `).join('');
             });
-
-            // Listen to Game Room State
-            onSnapshot(doc(db, "parties", currentPartyCode), (snap) => {
-                if (!snap.exists()) return;
-                const data = snap.data();
-
-                if (data.status === 'active') {
-                    switchScreen('screen-player');
-                    document.getElementById('display-q').innerText = data.question || "Round Started!";
-                    document.getElementById('btn-opt-a').innerText = data.optA || "Option A";
-                    document.getElementById('btn-opt-b').innerText = data.optB || "Option B";
-                    
-                    const a = document.getElementById('btn-opt-a');
-                    const b = document.getElementById('btn-opt-b');
-                    a.disabled = false; b.disabled = false;
-                    a.style.opacity = '1'; b.style.opacity = '1';
-
-                    if (isHost) document.getElementById('host-game-controls').style.display = 'block';
-                }
-            });
         }
+
+        // --- LEAVE PARTY CLEANUP ---
+        async function leaveCurrentParty() {
+            if (currentPartyCode && myPlayerId) {
+                try {
+                    await deleteDoc(doc(db, "parties", currentPartyCode, "players", myPlayerId));
+                } catch(e){}
+            }
+            localStorage.removeItem('nizzler_party_code');
+            currentPartyCode = null;
+            isHost = false;
+            document.getElementById('btn-rejoin-party').style.display = 'none';
+            switchScreen('screen-mode');
+        }
+
+        document.getElementById('btn-leave-party').addEventListener('click', () => {
+            leaveCurrentParty();
+            showToast("Left party room.", "info");
+        });
 
         // --- DRAG BUBBLE LOGIC ---
         function makeBubbleDraggable(element, playerId) {
@@ -492,13 +552,8 @@
 
             function drag(e) {
                 if (!active) return;
-                if (e.type === "touchmove") {
-                    currentX = e.touches[0].clientX - initialX;
-                    currentY = e.touches[0].clientY - initialY;
-                } else {
-                    currentX = e.clientX - initialX;
-                    currentY = e.clientY - initialY;
-                }
+                currentX = (e.type === "touchmove") ? e.touches[0].clientX - initialX : e.clientX - initialX;
+                currentY = (e.type === "touchmove") ? e.touches[0].clientY - initialY : e.clientY - initialY;
                 element.style.left = `${currentX}px`;
                 element.style.top = `${currentY}px`;
             }
@@ -510,14 +565,11 @@
                 window.removeEventListener('mouseup', dragEnd);
                 window.removeEventListener('touchend', dragEnd);
 
-                // Save new position to Firestore
-                updateDoc(doc(db, "parties", currentPartyCode, "players", playerId), {
-                    x: currentX, y: currentY
-                });
+                updateDoc(doc(db, "parties", currentPartyCode, "players", playerId), { x: currentX, y: currentY });
             }
         }
 
-        // --- HOST GAME CONTROLS ---
+        // --- GAME CONTROLS ---
         document.getElementById('btn-start-game').addEventListener('click', async () => {
             await updateDoc(doc(db, "parties", currentPartyCode), {
                 status: 'active',
@@ -540,7 +592,7 @@
         document.querySelectorAll('.nav-to-leaderboard').forEach(b => b.addEventListener('click', () => switchScreen('screen-leaderboard')));
         document.getElementById('btn-back-game').addEventListener('click', () => switchScreen('screen-player'));
 
-        // Boot
+        // Boot Init
         checkPersistentAuth();
     </script>
 </body>
