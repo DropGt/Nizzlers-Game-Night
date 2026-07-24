@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Nizzlers Game Night - Auto-Reconnect & Host Transfer</title>
+    <title>Nizzlers Game Night - Ping & PFP Edition</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;800&display=swap" rel="stylesheet">
     <style>
         /* --- GLOBAL STYLES & THEMING --- */
@@ -44,12 +44,25 @@
         /* Top Bar User Status & Logout */
         #user-bar {
             position: fixed; top: 15px; right: 20px;
-            display: none; align-items: center; gap: 12px;
-            z-index: 10000; background: rgba(0,0,0,0.5); backdrop-filter: blur(10px);
-            padding: 8px 16px; border-radius: 30px; border: 1px solid var(--glass-border);
+            display: none; align-items: center; gap: 10px;
+            z-index: 10000; background: rgba(0,0,0,0.6); backdrop-filter: blur(10px);
+            padding: 6px 14px; border-radius: 30px; border: 1px solid var(--glass-border);
         }
-        #user-bar .uname { font-weight: 700; color: var(--accent-neon); font-size: 0.9rem; }
+        #user-bar .uname { font-weight: 700; color: var(--accent-neon); font-size: 0.85rem; }
+        
+        /* Ping Badge */
+        .ping-badge {
+            background: rgba(255,255,255,0.1); border: 1px solid var(--glass-border);
+            border-radius: 12px; padding: 2px 8px; font-size: 0.72rem; font-weight: 800; color: var(--success);
+            display: flex; align-items: center; gap: 4px;
+        }
+        .ping-badge.laggy { color: var(--fire-gold); border-color: var(--fire-gold); }
+        .ping-badge.bad { color: var(--error); border-color: var(--error); }
+
         #user-bar .btn-logout { background: transparent; color: var(--error); border: none; font-size: 0.8rem; font-weight: 700; cursor: pointer; padding: 0; margin: 0; width: auto; box-shadow: none; text-transform: uppercase; }
+
+        /* Small Avatar Bar Image */
+        .bar-pfp { width: 28px; height: 28px; border-radius: 50%; object-fit: cover; border: 1.5px solid var(--accent-neon); }
 
         /* Toast Container */
         #toast-container {
@@ -59,13 +72,13 @@
         .toast {
             background: rgba(10, 10, 25, 0.95); backdrop-filter: blur(12px);
             border: 1px solid var(--glass-border); border-radius: 30px;
-            padding: 12px 24px; color: #fff; font-weight: 600; font-size: 0.9rem;
+            padding: 12px 24px; color: #fff; font-weight: 600; font-size: 0.88rem;
             box-shadow: 0 10px 30px rgba(0,0,0,0.6);
-            animation: slideInDown 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards, fadeOut 0.4s ease 2.5s forwards;
+            animation: slideInDown 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards, fadeOut 0.4s ease 3s forwards;
         }
         .toast.success { border-left: 5px solid var(--success); }
         .toast.error { border-left: 5px solid var(--error); }
-        .toast.fire { border-left: 5px solid var(--fire-gold); }
+        .toast.warning { border-left: 5px solid var(--fire-gold); }
 
         @keyframes slideInDown { from { transform: translateY(-60px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
         @keyframes fadeOut { to { opacity: 0; transform: translateY(-20px); } }
@@ -83,32 +96,32 @@
         .glass-panel {
             background: var(--glass-bg); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
             border: 1px solid var(--glass-border); border-radius: 28px;
-            padding: 30px; width: 100%; max-width: 440px;
+            padding: 26px; width: 100%; max-width: 440px;
             box-shadow: 0 25px 50px rgba(0,0,0,0.5); margin-bottom: 20px; position: relative;
         }
 
-        h1 { font-size: 2.3rem; font-weight: 800; text-align: center; margin-bottom: 8px; background: linear-gradient(to right, var(--accent-neon), var(--accent-pink)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-        h2 { font-size: 1.3rem; font-weight: 600; margin-bottom: 16px; text-align: center; color: #fff; }
-        p { color: var(--text-muted); text-align: center; font-size: 0.92rem; margin-bottom: 20px; }
+        h1 { font-size: 2.2rem; font-weight: 800; text-align: center; margin-bottom: 6px; background: linear-gradient(to right, var(--accent-neon), var(--accent-pink)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        h2 { font-size: 1.25rem; font-weight: 600; margin-bottom: 14px; text-align: center; color: #fff; }
+        p { color: var(--text-muted); text-align: center; font-size: 0.9rem; margin-bottom: 18px; }
 
         /* Inputs & Buttons */
-        .input-group { width: 100%; margin-bottom: 15px; }
-        .input-group label { display: block; font-size: 0.8rem; color: var(--accent-neon); margin-bottom: 6px; font-weight: 600; text-transform: uppercase; }
+        .input-group { width: 100%; margin-bottom: 12px; }
+        .input-group label { display: block; font-size: 0.78rem; color: var(--accent-neon); margin-bottom: 5px; font-weight: 600; text-transform: uppercase; }
         
         input[type="text"], input[type="password"] {
-            width: 100%; padding: 16px; border-radius: 16px; border: 2px solid transparent;
-            background: rgba(0,0,0,0.45); color: #fff; font-size: 1.05rem;
+            width: 100%; padding: 14px; border-radius: 16px; border: 2px solid transparent;
+            background: rgba(0,0,0,0.45); color: #fff; font-size: 1rem;
             outline: none; transition: all 0.3s ease; box-shadow: inset 0 2px 6px rgba(0,0,0,0.6);
             text-align: center;
         }
         input:focus { border-color: var(--accent-neon); background: rgba(0,0,0,0.65); }
 
         button {
-            width: 100%; padding: 16px; border-radius: 16px; border: none;
+            width: 100%; padding: 15px; border-radius: 16px; border: none;
             background: linear-gradient(45deg, var(--accent-neon), #00b3ff);
-            color: #000; font-size: 1rem; font-weight: 800; text-transform: uppercase; letter-spacing: 1px;
+            color: #000; font-size: 0.95rem; font-weight: 800; text-transform: uppercase; letter-spacing: 1px;
             cursor: pointer; transition: transform 0.15s, box-shadow 0.3s;
-            box-shadow: 0 10px 25px rgba(0, 255, 204, 0.25); margin-bottom: 12px;
+            box-shadow: 0 10px 25px rgba(0, 255, 204, 0.25); margin-bottom: 10px;
         }
         button:active { transform: translateY(3px) scale(0.98); }
         button.pink { background: linear-gradient(45deg, var(--accent-pink), #ff5500); color: #fff; box-shadow: 0 10px 25px rgba(255, 0, 127, 0.3); }
@@ -119,57 +132,104 @@
         /* Party Code Display Box */
         .code-display {
             background: rgba(0,0,0,0.6); border: 2px dashed var(--accent-neon);
-            border-radius: 20px; padding: 15px; text-align: center; margin-bottom: 20px;
+            border-radius: 20px; padding: 12px; text-align: center; margin-bottom: 16px;
         }
-        .code-display .code-title { font-size: 0.8rem; color: var(--text-muted); letter-spacing: 2px; }
-        .code-display .code-value { font-size: 2.2rem; font-weight: 800; color: var(--accent-neon); letter-spacing: 6px; }
+        .code-display .code-title { font-size: 0.75rem; color: var(--text-muted); letter-spacing: 2px; }
+        .code-display .code-value { font-size: 2rem; font-weight: 800; color: var(--accent-neon); letter-spacing: 6px; }
 
-        /* --- FLOATING PROFILES ARENA --- */
+        /* --- FLOATING PROFILES ARENA & DISCONNECTED STATUS --- */
         #floating-arena {
-            width: 100%; height: 260px; background: rgba(0,0,0,0.4);
+            width: 100%; height: 270px; background: rgba(0,0,0,0.4);
             border-radius: 20px; border: 1px solid var(--glass-border);
-            position: relative; overflow: hidden; margin-bottom: 20px;
+            position: relative; overflow: hidden; margin-bottom: 16px;
         }
 
         .profile-bubble {
-            position: absolute; width: 85px; height: 85px;
+            position: absolute; width: 88px; height: 88px;
             background: linear-gradient(135deg, rgba(255,255,255,0.15), rgba(255,255,255,0.05));
-            backdrop-filter: blur(10px); border: 2px solid var(--accent-neon);
+            backdrop-filter: blur(10px); border: 2.5px solid var(--accent-neon);
             border-radius: 50%; display: flex; flex-direction: column;
             align-items: center; justify-content: center; color: #fff;
             cursor: grab; touch-action: none; box-shadow: 0 8px 20px rgba(0,255,204,0.2);
             animation: floatBob 3s ease-in-out infinite alternate;
+            transition: border-color 0.3s, opacity 0.3s;
+        }
+        .profile-bubble.offline {
+            border-color: var(--error) !important;
+            opacity: 0.6;
+            filter: grayscale(0.7);
         }
         .profile-bubble:active { cursor: grabbing; border-color: var(--accent-pink); }
-        .profile-bubble .p-avatar { font-size: 1.5rem; }
-        .profile-bubble .p-name { font-size: 0.75rem; font-weight: 700; max-width: 75px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        
+        .profile-bubble .p-avatar-img {
+            width: 44px; height: 44px; border-radius: 50%; object-fit: cover; margin-bottom: 2px;
+            border: 1px solid rgba(255,255,255,0.5);
+        }
+        .profile-bubble .p-avatar-emoji { font-size: 1.5rem; }
+        .profile-bubble .p-name { font-size: 0.7rem; font-weight: 700; max-width: 75px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+        /* Disconnected Status Tag */
+        .status-tag {
+            position: absolute; bottom: -18px; left: 50%; transform: translateX(-50%);
+            background: var(--error); color: #fff; font-size: 0.6rem; font-weight: 800;
+            padding: 2px 8px; border-radius: 10px; white-space: nowrap; box-shadow: 0 4px 10px rgba(255,23,68,0.5);
+        }
 
         @keyframes floatBob {
             0% { transform: translateY(0px) rotate(-2deg); }
             100% { transform: translateY(-12px) rotate(2deg); }
         }
 
+        /* --- CAMERA & PFP SELECTOR --- */
+        .pfp-preview-container {
+            display: flex; flex-direction: column; align-items: center; margin-bottom: 15px;
+        }
+        #pfp-preview {
+            width: 90px; height: 90px; border-radius: 50%; object-fit: cover;
+            border: 3px solid var(--accent-neon); box-shadow: 0 0 20px rgba(0,255,204,0.4);
+            margin-bottom: 10px; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center;
+            font-size: 2.2rem;
+        }
+        #camera-video { width: 100%; border-radius: 16px; margin-bottom: 10px; display: none; background: #000; }
+        #canvas-capture { display: none; }
+
         /* Leaderboard List */
         .list-container { width: 100%; max-height: 45vh; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; }
-        .list-item { display: flex; justify-content: space-between; align-items: center; padding: 14px; background: rgba(0,0,0,0.35); border-radius: 16px; border: 1px solid var(--glass-border); }
+        .list-item { display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; background: rgba(0,0,0,0.35); border-radius: 16px; border: 1px solid var(--glass-border); }
         .list-item .name-box { display: flex; align-items: center; gap: 10px; font-weight: 600; }
-        .exp-tag { background: var(--accent-neon); color: #000; padding: 3px 10px; border-radius: 12px; font-weight: 800; font-size: 0.85rem; }
+        .list-item .list-pfp { width: 32px; height: 32px; border-radius: 50%; object-fit: cover; }
+        .exp-tag { background: var(--accent-neon); color: #000; padding: 3px 10px; border-radius: 12px; font-weight: 800; font-size: 0.82rem; }
     </style>
 </head>
 <body>
 
     <div id="user-bar">
+        <img id="bar-pfp-img" class="bar-pfp" src="" style="display:none;">
         <span class="uname" id="bar-username">User</span>
+        <div id="ping-display" class="ping-badge">--ms 📶</div>
         <button class="btn-logout" id="btn-logout">Log Out</button>
     </div>
 
     <div id="toast-container"></div>
 
     <div id="screen-auth" class="screen active">
-        <div class="glass-panel" style="margin-top: 50px;">
+        <div class="glass-panel" style="margin-top: 20px;">
             <h1>Nizzlers</h1>
-            <p>Enter your profile details to stay signed in</p>
+            <p>Create your profile & take a picture</p>
             
+            <div class="pfp-preview-container">
+                <div id="pfp-preview">👤</div>
+                <video id="camera-video" autoplay playsinline></video>
+                <canvas id="canvas-capture" width="200" height="200"></canvas>
+                
+                <div style="display: flex; gap: 8px; width: 100%;">
+                    <button id="btn-take-photo" class="secondary" style="font-size:0.75rem; padding: 10px;">📸 Take Snap</button>
+                    <button id="btn-snap-confirm" class="pink" style="display:none; font-size:0.75rem; padding: 10px;">Capture!</button>
+                    <button id="btn-upload-file" class="secondary" style="font-size:0.75rem; padding: 10px;">📁 Upload</button>
+                    <input type="file" id="pfp-file-input" accept="image/*" style="display:none;">
+                </div>
+            </div>
+
             <div class="input-group">
                 <label>Username</label>
                 <input type="text" id="auth-user" placeholder="e.g. Lilo, Lana, Owen..." autocomplete="off">
@@ -187,13 +247,12 @@
     <div id="screen-mode" class="screen">
         <div class="glass-panel">
             <h1>Game Night</h1>
-            <p>Create a party room, enter a code, or rejoin ongoing party</p>
+            <p>Create room, enter code, or rejoin</p>
 
             <button id="btn-rejoin-party" class="rejoin-btn" style="display: none;">↩️ Rejoin Party (<span id="rejoin-code-text">------</span>)</button>
-
             <button id="btn-mode-create" class="pink">🎮 Create New Game</button>
             
-            <div style="margin: 20px 0; border-top: 1px solid var(--glass-border);"></div>
+            <div style="margin: 16px 0; border-top: 1px solid var(--glass-border);"></div>
 
             <div class="input-group">
                 <label>Join Game Code</label>
@@ -214,8 +273,7 @@
 
             <p id="lobby-count-text">Waiting for players (0 / 3 min)...</p>
 
-            <div id="floating-arena">
-                </div>
+            <div id="floating-arena"></div>
 
             <button id="btn-start-game" class="pink" disabled>Start Game Anyway (Need 3 Players)</button>
             <button id="btn-leave-party" class="secondary" style="border-color: var(--error); color: var(--error);">Leave Party Room</button>
@@ -243,8 +301,7 @@
     <div id="screen-leaderboard" class="screen">
         <div class="glass-panel" style="max-height: 80vh; display: flex; flex-direction: column;">
             <h1>Leaderboard</h1>
-            <div class="list-container" id="leaderboard-list" style="flex-grow: 1;">
-                </div>
+            <div class="list-container" id="leaderboard-list" style="flex-grow: 1;"></div>
             <button id="btn-back-game" style="margin-top: 15px;">Return to Game</button>
         </div>
     </div>
@@ -265,15 +322,18 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
-        // State
+        // State Variables
         let myPlayerId = localStorage.getItem('nizzler_id');
         let myUsername = localStorage.getItem('nizzler_name');
+        let myPfpBase64 = localStorage.getItem('nizzler_pfp') || '';
         let currentPartyCode = localStorage.getItem('nizzler_party_code');
         let isHost = false;
         let unsubscribeParty = null;
         let unsubscribePlayers = null;
+        let cameraStream = null;
+        let badWifiNotified = {};
 
-        // UI Helpers
+        // Screen Navigation & Toast
         function switchScreen(id) {
             document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
             setTimeout(() => document.getElementById(id).classList.add('active'), 50);
@@ -285,24 +345,111 @@
             toast.className = `toast ${type}`;
             toast.innerText = msg;
             container.appendChild(toast);
-            setTimeout(() => toast.remove(), 2800);
+            setTimeout(() => toast.remove(), 3200);
         }
 
-        // --- AUTH & RECONNECTION DETECTOR ---
+        // --- CAMERA & PFP LOGIC ---
+        const btnTakePhoto = document.getElementById('btn-take-photo');
+        const btnSnapConfirm = document.getElementById('btn-snap-confirm');
+        const btnUploadFile = document.getElementById('btn-upload-file');
+        const pfpFileInput = document.getElementById('pfp-file-input');
+        const cameraVideo = document.getElementById('camera-video');
+        const canvasCapture = document.getElementById('canvas-capture');
+        const pfpPreview = document.getElementById('pfp-preview');
+
+        if (myPfpBase64) {
+            pfpPreview.innerHTML = `<img src="${myPfpBase64}" style="width:100%; height:100%; border-radius:50%; object-fit:cover;">`;
+        }
+
+        btnTakePhoto.addEventListener('click', async () => {
+            try {
+                cameraStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" }, audio: false });
+                cameraVideo.srcObject = cameraStream;
+                cameraVideo.style.display = 'block';
+                pfpPreview.style.display = 'none';
+                btnTakePhoto.style.display = 'none';
+                btnSnapConfirm.style.display = 'block';
+            } catch(err) {
+                showToast("Unable to access camera!", "error");
+            }
+        });
+
+        btnSnapConfirm.addEventListener('click', () => {
+            const ctx = canvasCapture.getContext('2d');
+            ctx.drawImage(cameraVideo, 0, 0, 200, 200);
+            myPfpBase64 = canvasCapture.toDataURL('image/jpeg', 0.8);
+            
+            // Stop Camera
+            if (cameraStream) cameraStream.getTracks().forEach(track => track.stop());
+            cameraVideo.style.display = 'none';
+            pfpPreview.style.display = 'flex';
+            pfpPreview.innerHTML = `<img src="${myPfpBase64}" style="width:100%; height:100%; border-radius:50%; object-fit:cover;">`;
+            
+            btnTakePhoto.style.display = 'block';
+            btnSnapConfirm.style.display = 'none';
+            localStorage.setItem('nizzler_pfp', myPfpBase64);
+            showToast("Profile Photo captured!", "success");
+        });
+
+        btnUploadFile.addEventListener('click', () => pfpFileInput.click());
+        pfpFileInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(evt) {
+                    myPfpBase64 = evt.target.result;
+                    pfpPreview.innerHTML = `<img src="${myPfpBase64}" style="width:100%; height:100%; border-radius:50%; object-fit:cover;">`;
+                    localStorage.setItem('nizzler_pfp', myPfpBase64);
+                    showToast("Photo uploaded successfully!", "success");
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        // --- PING TESTER & HEARTBEAT ENGINE ---
+        let currentPing = 0;
+        setInterval(async () => {
+            if (!myPlayerId) return;
+            const start = Date.now();
+            try {
+                // Ping test check against Firestore timestamp
+                await getDoc(doc(db, "users", myPlayerId));
+                currentPing = Date.now() - start;
+
+                // Update UI Ping Tester Badge
+                const badge = document.getElementById('ping-display');
+                badge.innerText = `${currentPing}ms 📶`;
+                badge.className = 'ping-badge';
+                if (currentPing > 150 && currentPing <= 300) badge.classList.add('laggy');
+                if (currentPing > 300) badge.classList.add('bad');
+
+                // If inside a party, update online heartbeat & current ping
+                if (currentPartyCode) {
+                    updateDoc(doc(db, "parties", currentPartyCode, "players", myPlayerId), {
+                        lastSeen: Date.now(),
+                        ping: currentPing
+                    }).catch(()=>{});
+                }
+            } catch(e) {}
+        }, 3500);
+
+        // --- AUTH CHECK ---
         async function checkPersistentAuth() {
             if (myPlayerId && myUsername) {
                 document.getElementById('user-bar').style.display = 'flex';
                 document.getElementById('bar-username').innerText = myUsername;
+                if (myPfpBase64) {
+                    const img = document.getElementById('bar-pfp-img');
+                    img.src = myPfpBase64; img.style.display = 'block';
+                }
                 
-                // Check if user has an active party to rejoin
                 if (currentPartyCode) {
                     const partySnap = await getDoc(doc(db, "parties", currentPartyCode));
                     if (partySnap.exists()) {
                         document.getElementById('rejoin-code-text').innerText = currentPartyCode;
                         document.getElementById('btn-rejoin-party').style.display = 'block';
                     } else {
-                        localStorage.removeItem('nizzler_party_code');
-                        currentPartyCode = null;
+                        localStorage.removeItem('nizzler_party_code'); currentPartyCode = null;
                     }
                 }
                 switchScreen('screen-mode');
@@ -324,9 +471,11 @@
             const pSnap = await getDoc(pRef);
 
             if (!pSnap.exists()) {
-                await setDoc(pRef, { name: u, pass: p, createdAt: Date.now() });
+                await setDoc(pRef, { name: u, pass: p, pfp: myPfpBase64, createdAt: Date.now() });
             } else if (pSnap.data().pass !== p) {
-                return showToast("Incorrect password for this user!", "error");
+                return showToast("Incorrect password!", "error");
+            } else {
+                await updateDoc(pRef, { pfp: myPfpBase64 });
             }
 
             localStorage.setItem('nizzler_id', myPlayerId);
@@ -339,7 +488,7 @@
         document.getElementById('btn-logout').addEventListener('click', async () => {
             await leaveCurrentParty();
             localStorage.clear();
-            myPlayerId = null; myUsername = null; currentPartyCode = null;
+            myPlayerId = null; myUsername = null; currentPartyCode = null; myPfpBase64 = '';
             checkPersistentAuth();
             showToast("Logged out successfully.", "info");
         });
@@ -353,9 +502,8 @@
             const partyData = partySnap.data();
             isHost = (partyData.hostId === myPlayerId);
 
-            // Re-register player in party list if missing
             await setDoc(doc(db, "parties", currentPartyCode, "players", myPlayerId), {
-                name: myUsername, exp: 0, lastAnswer: "", isHost: isHost, x: 30, y: 30
+                name: myUsername, pfp: myPfpBase64, exp: 0, lastAnswer: "", isHost: isHost, x: 30, y: 30, lastSeen: Date.now(), ping: currentPing
             }, { merge: true });
 
             setupPartyListeners();
@@ -377,7 +525,7 @@
             });
 
             await setDoc(doc(db, "parties", currentPartyCode, "players", myPlayerId), {
-                name: myUsername, exp: 0, lastAnswer: "", isHost: true, x: 20, y: 20
+                name: myUsername, pfp: myPfpBase64, exp: 0, lastAnswer: "", isHost: true, x: 20, y: 20, lastSeen: Date.now(), ping: currentPing
             });
 
             setupPartyListeners();
@@ -397,7 +545,7 @@
             localStorage.setItem('nizzler_party_code', currentPartyCode);
 
             await setDoc(doc(db, "parties", currentPartyCode, "players", myPlayerId), {
-                name: myUsername, exp: 0, lastAnswer: "", isHost: false, x: Math.random()*150, y: Math.random()*100
+                name: myUsername, pfp: myPfpBase64, exp: 0, lastAnswer: "", isHost: false, x: Math.random()*150, y: Math.random()*100, lastSeen: Date.now(), ping: currentPing
             });
 
             setupPartyListeners();
@@ -405,16 +553,14 @@
             showToast(`Joined Party ${currentPartyCode}!`, "success");
         });
 
-        // --- REALTIME PARTY LISTENERS & HOST TRANSFER ENGINE ---
+        // --- REALTIME LOBBY & BAD WIFI / DISCONNECTED LOGIC ---
         function setupPartyListeners() {
             if (!currentPartyCode) return;
             document.getElementById('party-code-tag').innerText = currentPartyCode;
 
-            // Unsubscribe old listeners if active
             if(unsubscribeParty) unsubscribeParty();
             if(unsubscribePlayers) unsubscribePlayers();
 
-            // 1. Party Room Listener
             unsubscribeParty = onSnapshot(doc(db, "parties", currentPartyCode), (snap) => {
                 if (!snap.exists()) {
                     showToast("Party has been closed.", "error");
@@ -422,11 +568,9 @@
                     return;
                 }
                 const data = snap.data();
-
-                // Check if Host status migrated to me
                 if (data.hostId === myPlayerId && !isHost) {
                     isHost = true;
-                    showToast("👑 You are now the Party Host!", "fire");
+                    showToast("👑 You are now the Party Host!", "warning");
                     updateDoc(doc(db, "parties", currentPartyCode, "players", myPlayerId), { isHost: true });
                 }
 
@@ -445,43 +589,61 @@
                 }
             });
 
-            // 2. Players Listener & Host Migration Checking
             unsubscribePlayers = onSnapshot(collection(db, "parties", currentPartyCode, "players"), async (snapshot) => {
                 const players = [];
                 const arena = document.getElementById('floating-arena');
                 arena.innerHTML = '';
 
                 let hasActiveHost = false;
+                const now = Date.now();
 
                 snapshot.forEach(d => {
                     const p = { id: d.id, ...d.data() };
                     players.push(p);
 
-                    if (p.isHost) hasActiveHost = true;
+                    // Determine if player is disconnected (last heartbeat > 10s)
+                    const isDisconnected = (now - (p.lastSeen || 0)) > 10000;
 
-                    // Render Bubble
+                    if (p.isHost && !isDisconnected) hasActiveHost = true;
+
+                    // BAD WIFI POPUP BROADCAST ALERT (ping > 300ms)
+                    if (p.ping > 300 && !badWifiNotified[p.id]) {
+                        badWifiNotified[p.id] = true;
+                        showToast(`⚠️ ${p.name} has bad Wi-Fi! (${p.ping}ms)`, "warning");
+                        setTimeout(() => delete badWifiNotified[p.id], 15000); // Cooldown
+                    }
+
+                    // Render Floating Profile Bubble
                     const bubble = document.createElement('div');
-                    bubble.className = 'profile-bubble';
+                    bubble.className = `profile-bubble ${isDisconnected ? 'offline' : ''}`;
                     bubble.style.left = `${p.x || 20}px`;
                     bubble.style.top = `${p.y || 20}px`;
+                    
+                    const avatarHtml = p.pfp 
+                        ? `<img src="${p.pfp}" class="p-avatar-img">`
+                        : `<div class="p-avatar-emoji">${p.isHost ? '👑' : '🎮'}</div>`;
+
                     bubble.innerHTML = `
-                        <div class="p-avatar">${p.isHost ? '👑' : '🎮'}</div>
+                        ${avatarHtml}
                         <div class="p-name">${p.name}</div>
+                        ${isDisconnected ? '<div class="status-tag">Disconnected</div>' : ''}
                     `;
 
                     if (isHost) makeBubbleDraggable(bubble, p.id);
                     arena.appendChild(bubble);
                 });
 
-                // AUTOMATIC HOST TRANSFER LOGIC
-                // If Host left, pick a random remaining player to become the new Host!
+                // HOST MIGRATION (If current host disconnected or left)
                 if (!hasActiveHost && players.length > 0) {
-                    const randomNewHost = players[Math.floor(Math.random() * players.length)];
-                    await updateDoc(doc(db, "parties", currentPartyCode), { hostId: randomNewHost.id });
-                    await updateDoc(doc(db, "parties", currentPartyCode, "players", randomNewHost.id), { isHost: true });
+                    const connectedPlayers = players.filter(p => (now - (p.lastSeen || 0)) <= 10000);
+                    if (connectedPlayers.length > 0) {
+                        const newHost = connectedPlayers[0];
+                        await updateDoc(doc(db, "parties", currentPartyCode), { hostId: newHost.id });
+                        await updateDoc(doc(db, "parties", currentPartyCode, "players", newHost.id), { isHost: true });
+                    }
                 }
 
-                // Lobby Rules (3 Player Min)
+                // Lobby Rules
                 const startBtn = document.getElementById('btn-start-game');
                 document.getElementById('lobby-count-text').innerText = `Players Joined: (${players.length} / 3 min)`;
 
@@ -492,7 +654,7 @@
                         startBtn.innerText = "🚀 Start Game Anyway";
                     } else {
                         startBtn.disabled = true;
-                        startBtn.innerText = `Start Game Anyway (Need ${3 - players.length} More)`;
+                        startBtn.innerText = `Start Game (Need ${3 - players.length} More)`;
                     }
                 } else {
                     startBtn.style.display = 'none';
@@ -502,23 +664,23 @@
                 players.sort((a, b) => b.exp - a.exp);
                 document.getElementById('leaderboard-list').innerHTML = players.map((p, i) => `
                     <div class="list-item">
-                        <div class="name-box">${i === 0 ? '👑' : i + 1 + '.'} ${p.name}</div>
+                        <div class="name-box">
+                            ${p.pfp ? `<img src="${p.pfp}" class="list-pfp">` : ''}
+                            ${i === 0 ? '👑' : i + 1 + '.'} ${p.name}
+                        </div>
                         <div class="exp-tag">${p.exp} XP</div>
                     </div>
                 `).join('');
             });
         }
 
-        // --- LEAVE PARTY CLEANUP ---
+        // LEAVE PARTY CLEANUP
         async function leaveCurrentParty() {
             if (currentPartyCode && myPlayerId) {
-                try {
-                    await deleteDoc(doc(db, "parties", currentPartyCode, "players", myPlayerId));
-                } catch(e){}
+                try { await deleteDoc(doc(db, "parties", currentPartyCode, "players", myPlayerId)); } catch(e){}
             }
             localStorage.removeItem('nizzler_party_code');
-            currentPartyCode = null;
-            isHost = false;
+            currentPartyCode = null; isHost = false;
             document.getElementById('btn-rejoin-party').style.display = 'none';
             switchScreen('screen-mode');
         }
@@ -528,7 +690,7 @@
             showToast("Left party room.", "info");
         });
 
-        // --- DRAG BUBBLE LOGIC ---
+        // DRAG BUBBLE LOGIC
         function makeBubbleDraggable(element, playerId) {
             let active = false, currentX, currentY, initialX, initialY;
 
@@ -536,13 +698,8 @@
             element.addEventListener('touchstart', dragStart, { passive: true });
 
             function dragStart(e) {
-                if (e.type === "touchstart") {
-                    initialX = e.touches[0].clientX - element.offsetLeft;
-                    initialY = e.touches[0].clientY - element.offsetTop;
-                } else {
-                    initialX = e.clientX - element.offsetLeft;
-                    initialY = e.clientY - element.offsetTop;
-                }
+                initialX = (e.type === "touchstart") ? e.touches[0].clientX - element.offsetLeft : e.clientX - element.offsetLeft;
+                initialY = (e.type === "touchstart") ? e.touches[0].clientY - element.offsetTop : e.clientY - element.offsetTop;
                 active = true;
                 window.addEventListener('mousemove', drag);
                 window.addEventListener('touchmove', drag, { passive: true });
@@ -569,7 +726,7 @@
             }
         }
 
-        // --- GAME CONTROLS ---
+        // GAME CONTROLS
         document.getElementById('btn-start-game').addEventListener('click', async () => {
             await updateDoc(doc(db, "parties", currentPartyCode), {
                 status: 'active',
