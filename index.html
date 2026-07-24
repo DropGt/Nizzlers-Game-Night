@@ -263,7 +263,6 @@
             border-radius: 50%; display: flex; flex-direction: column;
             align-items: center; justify-content: center; color: #fff;
             cursor: grab; touch-action: none; box-shadow: 0 8px 20px rgba(0,255,204,0.2);
-            animation: floatBob 3s ease-in-out infinite alternate;
         }
         .profile-bubble.offline { border-color: var(--error) !important; opacity: 0.6; filter: grayscale(0.7); }
         .profile-bubble .p-avatar-img { width: 44px; height: 44px; border-radius: 50%; object-fit: cover; margin-bottom: 2px; border: 1px solid rgba(255,255,255,0.5); pointer-events: none; }
@@ -274,33 +273,29 @@
             padding: 2px 8px; border-radius: 10px; white-space: nowrap;
         }
 
-        @keyframes floatBob {
-            0% { transform: translateY(0px) rotate(-2deg); }
-            100% { transform: translateY(-12px) rotate(2deg); }
-        }
-
-        /* --- 8 BALL POOL DUELS MODAL & ARENA --- */
+        /* --- 8 BALL POOL DUELS MODAL & ARENA (Miniclip Style) --- */
         #modal-pool-setup {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0,0,0,0.85); backdrop-filter: blur(15px);
             z-index: 20000; display: none; align-items: center; justify-content: center;
-            animation: fadeInModal 0.3s ease forwards;
         }
-        @keyframes fadeInModal { from { opacity: 0; transform: scale(0.9); } to { opacity: 1; transform: scale(1); } }
+
+        .miniclip-topbar {
+            display: flex; justify-content: space-between; align-items: center;
+            background: rgba(10,10,25,0.85); padding: 8px 12px; border-radius: 12px; margin-bottom: 10px;
+            border: 1px solid var(--glass-border); font-size: 0.78rem; font-weight: 700;
+        }
+        .pool-player-badge { display: flex; align-items: center; gap: 6px; }
+        .pool-avatar { width: 32px; height: 32px; border-radius: 50%; object-fit: cover; border: 2px solid var(--accent-neon); }
+        .pool-score-box { background: #111; border: 2px solid var(--fire-gold); padding: 2px 10px; border-radius: 10px; color: var(--fire-gold); font-size: 0.85rem; font-weight: 800; }
 
         #pool-canvas {
-            background: #0d421d; border: 6px solid #5c3818; border-radius: 12px;
-            box-shadow: inset 0 0 30px rgba(0,0,0,0.8); display: block; margin: 0 auto 12px auto;
+            background: #0d421d; border: 8px solid #4a2810; border-radius: 12px;
+            box-shadow: inset 0 0 35px rgba(0,0,0,0.9), 0 10px 30px rgba(0,0,0,0.7); display: block; margin: 0 auto 10px auto;
             touch-action: none;
         }
 
-        .pool-hud {
-            display: flex; justify-content: space-between; align-items: center;
-            background: rgba(0,0,0,0.5); padding: 8px 14px; border-radius: 12px; margin-bottom: 10px;
-            font-size: 0.82rem; font-weight: 700; color: var(--accent-neon);
-        }
-
-        /* Friend List & Modal */
+        /* Friend Modal */
         .friend-item { display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; background: rgba(0,0,0,0.3); border-radius: 12px; margin-bottom: 8px; }
     </style>
 </head>
@@ -443,16 +438,25 @@
     </div>
 
     <div id="screen-pool" class="screen">
-        <div class="glass-panel" style="max-width: 480px; padding: 20px;">
-            <div class="pool-hud">
-                <span id="pool-mode-display">Mode: 1v1</span>
-                <span id="pool-streak-display">🔥 Streak: 0</span>
-                <span id="pool-clock">⏱️ 03:00</span>
+        <div class="glass-panel" style="max-width: 480px; padding: 16px;">
+            <div class="miniclip-topbar">
+                <div class="pool-player-badge">
+                    <img id="pool-opp-avatar" src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100" class="pool-avatar">
+                    <span id="pool-opp-name">Sheila</span>
+                </div>
+                <div class="pool-score-box">🪙 1 - 0 🌟 200</div>
+                <div class="pool-player-badge">
+                    <span id="pool-my-name" style="text-align: right;">Ron</span>
+                    <img id="pool-my-avatar" src="" class="pool-avatar">
+                </div>
             </div>
             
-            <p id="pool-turn-text" style="margin-bottom: 10px;">Aim your cue stick and adjust power!</p>
-            
-            <canvas id="pool-canvas" width="420" height="240"></canvas>
+            <canvas id="pool-canvas" width="424" height="240"></canvas>
+
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; font-size: 0.8rem; font-weight: 700;">
+                <span id="pool-turn-text" style="color: var(--accent-neon);">Aim your cue stick & control power!</span>
+                <span id="pool-clock">⏱️ 03:00</span>
+            </div>
 
             <div class="input-group" style="margin-bottom: 10px;">
                 <label>Power Controller: <span id="power-val">50</span>%</label>
@@ -517,7 +521,7 @@
         let unsubscribeParty = null;
         let unsubscribePlayers = null;
         let cameraStream = null;
-        let badWifiNotified = {};
+        let heartbeatInterval = null;
 
         // Theme Manager
         window.setTheme = function(themeName) {
@@ -533,9 +537,17 @@
             document.getElementById('settings-drawer').classList.toggle('open');
         });
 
+        // FIXED SCREEN SWITCHER (Prevents screen overlap bug after logout)
         function switchScreen(id) {
-            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-            setTimeout(() => document.getElementById(id).classList.add('active'), 50);
+            document.querySelectorAll('.screen').forEach(s => {
+                s.classList.remove('active');
+                s.style.display = 'none';
+            });
+            const target = document.getElementById(id);
+            if (target) {
+                target.style.display = 'flex';
+                setTimeout(() => target.classList.add('active'), 20);
+            }
         }
 
         function showToast(msg, type = 'info') {
@@ -547,13 +559,34 @@
             setTimeout(() => toast.remove(), 3200);
         }
 
+        // --- WORKING PING CHECKER ---
+        async function checkPing() {
+            const start = performance.now();
+            try {
+                // Quick read on user doc to test latency
+                if (myPlayerId) {
+                    await getDoc(doc(db, "users", myPlayerId));
+                } else {
+                    await getDoc(doc(db, "users", "ping_test"));
+                }
+                const latency = Math.round(performance.now() - start);
+                const badge = document.getElementById('ping-display');
+                badge.innerText = `${latency}ms 📶`;
+                badge.className = "ping-badge";
+                if (latency > 250) badge.classList.add('bad');
+                else if (latency > 120) badge.classList.add('laggy');
+            } catch (e) {
+                document.getElementById('ping-display').innerText = `offline ❌`;
+            }
+        }
+        setInterval(checkPing, 5000);
+
         // --- USERNAME VALIDATION & FRIEND SYSTEM ---
         function validateUsernameInput(username) {
             if (username.includes(" ")) {
                 showToast("Error: Username cannot contain spaces. Please rename your username.", "error");
                 return false;
             }
-            // Allow only letters, numbers, underscores, and hyphens
             const validRegex = /^[a-zA-Z0-9_-]+$/;
             if (!validRegex.test(username)) {
                 showToast("Error: Special characters are not allowed except underscore (_) and hyphen (-).", "error");
@@ -673,6 +706,7 @@
                 document.getElementById('user-bar').style.display = 'none';
                 switchScreen('screen-auth');
             }
+            checkPing();
         }
 
         document.getElementById('btn-auth-submit').addEventListener('click', async () => {
@@ -712,6 +746,7 @@
         });
 
         document.getElementById('btn-logout').addEventListener('click', async () => {
+            if (heartbeatInterval) clearInterval(heartbeatInterval);
             await leaveCurrentParty();
             localStorage.clear();
             myPlayerId = null; myUsername = null; currentPartyCode = null; myPfpBase64 = '';
@@ -735,7 +770,7 @@
             isHost = (partyData.hostId === myPlayerId);
 
             await setDoc(doc(db, "parties", currentPartyCode, "players", myPlayerId), {
-                name: myUsername, pfp: myPfpBase64, exp: 0, lastAnswer: "", isHost: isHost, x: 30, y: 30, lastSeen: Date.now(), ping: 25
+                name: myUsername, pfp: myPfpBase64, exp: 0, lastAnswer: "", isHost: isHost, x: 30, y: 30, lastSeen: Date.now()
             }, { merge: true });
 
             setupPartyListeners();
@@ -755,7 +790,7 @@
             });
 
             await setDoc(doc(db, "parties", currentPartyCode, "players", myPlayerId), {
-                name: myUsername, pfp: myPfpBase64, exp: 0, lastAnswer: "", isHost: true, x: 20, y: 20, lastSeen: Date.now(), ping: 25
+                name: myUsername, pfp: myPfpBase64, exp: 0, lastAnswer: "", isHost: true, x: 20, y: 20, lastSeen: Date.now()
             });
 
             setupPartyListeners();
@@ -775,7 +810,7 @@
             localStorage.setItem('nizzler_party_code', currentPartyCode);
 
             await setDoc(doc(db, "parties", currentPartyCode, "players", myPlayerId), {
-                name: myUsername, pfp: myPfpBase64, exp: 0, lastAnswer: "", isHost: false, x: Math.random()*150, y: Math.random()*100, lastSeen: Date.now(), ping: 25
+                name: myUsername, pfp: myPfpBase64, exp: 0, lastAnswer: "", isHost: false, x: Math.random()*150, y: Math.random()*100, lastSeen: Date.now()
             });
 
             setupPartyListeners();
@@ -796,7 +831,10 @@
 
         function launchPoolMatch(mode) {
             document.getElementById('modal-pool-setup').style.display = 'none';
-            document.getElementById('pool-mode-display').innerText = `Mode: ${mode}`;
+            document.getElementById('pool-my-name').innerText = myUsername;
+            if (myPfpBase64) document.getElementById('pool-my-avatar').src = myPfpBase64;
+            else document.getElementById('pool-my-avatar').src = "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100";
+
             switchScreen('screen-pool');
             initFullPoolSimulation();
             showToast(`🎱 Pool ${mode} Party Code Room Started! Stakes Active!`, "success");
@@ -820,16 +858,13 @@
                 if (secondsLeft <= 0) clearInterval(clockInterval);
             }, 1000);
 
-            // Table cushions / boundaries
-            const tableBounds = { xMin: 20, xMax: 400, yMin: 20, yMax: 220 };
+            const tableBounds = { xMin: 22, xMax: 402, yMin: 22, yMax: 218 };
             
             let cueBall = { x: 100, y: 120, vx: 0, vy: 0, radius: 7, color: '#ffffff' };
             let balls = [];
 
-            // Rack 15 object balls in triangle
-            let startX = 280, startY = 120;
+            let startX = 275, startY = 120;
             let spacing = 15;
-            let count = 1;
             let colors = ['#ffcc00', '#0033cc', '#cc0000', '#660066', '#ff6600', '#006600', '#663300', '#111111', '#ff99cc', '#3399ff', '#ff3333', '#9933ff', '#ff9933', '#33cc33', '#996633'];
             
             for (let col = 0; col < 5; col++) {
@@ -845,46 +880,49 @@
             }
 
             const pockets = [
-                {x: 15, y: 15}, {x: 210, y: 15}, {x: 405, y: 15},
-                {x: 15, y: 225}, {x: 210, y: 225}, {x: 405, y: 225}
+                {x: 16, y: 16}, {x: 212, y: 14}, {x: 408, y: 16},
+                {x: 16, y: 224}, {x: 212, y: 226}, {x: 408, y: 224}
             ];
 
             function drawTable() {
                 ctx.fillStyle = '#0d421d';
                 ctx.fillRect(0, 0, canvas.width, canvas.height);
 
+                // Table felt inner border line
+                ctx.strokeStyle = '#052911'; ctx.lineWidth = 3;
+                ctx.strokeRect(14, 14, canvas.width - 28, canvas.height - 28);
+
                 // Pockets
-                ctx.fillStyle = '#000000';
                 pockets.forEach(p => {
+                    ctx.fillStyle = '#000000';
                     ctx.beginPath(); ctx.arc(p.x, p.y, 11, 0, Math.PI*2); ctx.fill();
+                    ctx.strokeStyle = '#222'; ctx.lineWidth = 2; ctx.stroke();
                 });
 
                 // Cue Ball
                 ctx.fillStyle = cueBall.color;
                 ctx.beginPath(); ctx.arc(cueBall.x, cueBall.y, cueBall.radius, 0, Math.PI*2); ctx.fill();
+                ctx.strokeStyle = '#bbb'; ctx.lineWidth = 1; ctx.stroke();
 
                 // Object Balls
                 balls.forEach(b => {
                     if (!b.potted) {
                         ctx.fillStyle = b.color;
                         ctx.beginPath(); ctx.arc(b.x, b.y, b.radius, 0, Math.PI*2); ctx.fill();
-                        ctx.strokeStyle = '#fff'; ctx.lineWidth = 1; ctx.stroke();
+                        ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 1.2; ctx.stroke();
                     }
                 });
             }
 
             function updatePhysics() {
-                // Cue ball motion & friction
                 cueBall.x += cueBall.vx; cueBall.y += cueBall.vy;
                 cueBall.vx *= 0.985; cueBall.vy *= 0.985;
 
-                // Wall bounds (balls cannot leave the table)
                 if (cueBall.x - cueBall.radius < tableBounds.xMin) { cueBall.x = tableBounds.xMin + cueBall.radius; cueBall.vx *= -0.8; }
                 if (cueBall.x + cueBall.radius > tableBounds.xMax) { cueBall.x = tableBounds.xMax - cueBall.radius; cueBall.vx *= -0.8; }
                 if (cueBall.y - cueBall.radius < tableBounds.yMin) { cueBall.y = tableBounds.yMin + cueBall.radius; cueBall.vy *= -0.8; }
                 if (cueBall.y + cueBall.radius > tableBounds.yMax) { cueBall.y = tableBounds.yMax - cueBall.radius; cueBall.vy *= -0.8; }
 
-                // Object balls physics
                 balls.forEach(b => {
                     if (!b.potted) {
                         b.x += b.vx; b.y += b.vy;
@@ -893,21 +931,18 @@
                         if (b.x - b.radius < tableBounds.xMin) { b.x = tableBounds.xMin + b.radius; b.vx *= -0.8; }
                         if (b.x + b.radius > tableBounds.xMax) { b.x = tableBounds.xMax - b.radius; b.vx *= -0.8; }
                         if (b.y - b.radius < tableBounds.yMin) { b.y = tableBounds.yMin + b.radius; b.vy *= -0.8; }
-                        if (b.y + b.radius > tableBounds.yMax) { b.y = tableBounds.yMax - tableBounds.yMax; b.y = tableBounds.yMax - b.radius; b.vy *= -0.8; }
+                        if (b.y + b.radius > tableBounds.yMax) { b.y = tableBounds.yMax - b.radius; b.vy *= -0.8; }
 
-                        // Check pocket scoring
                         pockets.forEach(p => {
                             if (Math.hypot(b.x - p.x, b.y - p.y) < 13) {
                                 b.potted = true;
                                 streak++;
-                                document.getElementById('pool-streak-display').innerText = `🔥 Streak: ${streak}`;
                                 showToast("🎯 Pocketed Object Ball! +1 Win Streak", "success");
                             }
                         });
                     }
                 });
 
-                // Ball-to-ball collisions
                 for (let i = 0; i < balls.length; i++) {
                     for (let j = i + 1; j < balls.length; j++) {
                         let b1 = balls[i], b2 = balls[j];
@@ -920,7 +955,6 @@
                             }
                         }
                     }
-                    // Cue ball collision with object ball
                     let b = balls[i];
                     if (!b.potted) {
                         let dist = Math.hypot(cueBall.x - b.x, cueBall.y - b.y);
@@ -951,13 +985,23 @@
             updatePhysics();
         }
 
-        // --- REALTIME PARTY LOBBY ---
+        // --- REALTIME PARTY LOBBY (FIXED DISCONNECT BUG) ---
         function setupPartyListeners() {
             if (!currentPartyCode) return;
             document.getElementById('party-code-tag').innerText = currentPartyCode;
 
-            if(unsubscribeParty) unsubscribeParty();
-            if(unsubscribePlayers) unsubscribePlayers();
+            if (unsubscribeParty) unsubscribeParty();
+            if (unsubscribePlayers) unsubscribePlayers();
+
+            // Heartbeat interval to keep the player online continuously (even when dragging or idling)
+            if (heartbeatInterval) clearInterval(heartbeatInterval);
+            heartbeatInterval = setInterval(async () => {
+                if (currentPartyCode && myPlayerId) {
+                    await updateDoc(doc(db, "parties", currentPartyCode, "players", myPlayerId), {
+                        lastSeen: Date.now()
+                    }).catch(() => {});
+                }
+            }, 3000);
 
             unsubscribeParty = onSnapshot(doc(db, "parties", currentPartyCode), (snap) => {
                 if (!snap.exists()) {
@@ -995,7 +1039,8 @@
                     const p = { id: d.id, ...d.data() };
                     players.push(p);
 
-                    const isDisconnected = (now - (p.lastSeen || 0)) > 10000;
+                    // 15 seconds threshold for disconnection timeout
+                    const isDisconnected = (now - (p.lastSeen || 0)) > 15000;
                     if (p.isHost && !isDisconnected) hasActiveHost = true;
 
                     const bubble = document.createElement('div');
@@ -1013,12 +1058,12 @@
                         ${isDisconnected ? '<div class="status-tag">Disconnected</div>' : ''}
                     `;
 
-                    if (isHost) makeBubbleDraggable(bubble, p.id);
+                    makeBubbleDraggable(bubble, p.id);
                     arena.appendChild(bubble);
                 });
 
                 if (!hasActiveHost && players.length > 0) {
-                    const connectedPlayers = players.filter(p => (now - (p.lastSeen || 0)) <= 10000);
+                    const connectedPlayers = players.filter(p => (now - (p.lastSeen || 0)) <= 15000);
                     if (connectedPlayers.length > 0) {
                         const newHost = connectedPlayers[0];
                         await updateDoc(doc(db, "parties", currentPartyCode), { hostId: newHost.id });
@@ -1051,6 +1096,7 @@
         }
 
         async function leaveCurrentParty() {
+            if (heartbeatInterval) clearInterval(heartbeatInterval);
             if (currentPartyCode && myPlayerId) {
                 try { await deleteDoc(doc(db, "parties", currentPartyCode, "players", myPlayerId)); } catch(e){}
             }
@@ -1084,17 +1130,32 @@
                 if (!active) return;
                 currentX = (e.type === "touchmove") ? e.touches[0].clientX - initialX : e.clientX - initialX;
                 currentY = (e.type === "touchmove") ? e.touches[0].clientY - initialY : e.clientY - initialY;
+                
+                // Keep within arena bounds
+                const arena = document.getElementById('floating-arena');
+                const maxX = arena.clientWidth - element.clientWidth;
+                const maxY = arena.clientHeight - element.clientHeight;
+                currentX = Math.max(0, Math.min(currentX, maxX));
+                currentY = Math.max(0, Math.min(currentY, maxY));
+
                 element.style.left = `${currentX}px`;
                 element.style.top = `${currentY}px`;
             }
 
             function dragEnd() {
+                if (!active) return;
                 active = false;
                 window.removeEventListener('mousemove', drag);
                 window.removeEventListener('touchmove', drag);
                 window.removeEventListener('mouseup', dragEnd);
                 window.removeEventListener('touchend', dragEnd);
-                updateDoc(doc(db, "parties", currentPartyCode, "players", playerId), { x: currentX, y: currentY });
+                
+                // Immediately refresh heartbeat and save new position
+                updateDoc(doc(db, "parties", currentPartyCode, "players", playerId), { 
+                    x: currentX, 
+                    y: currentY,
+                    lastSeen: Date.now() 
+                }).catch(() => {});
             }
         }
 
