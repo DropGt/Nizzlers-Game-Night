@@ -3,10 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Nizzlers Game Night - Ping & PFP Edition</title>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;800&display=swap" rel="stylesheet">
+    <title>Nizzlers Game Night - Pool Duels & Advanced Themes</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;800&family=Bangers&family=Press+Start+2P&display=swap" rel="stylesheet">
     <style>
-        /* --- GLOBAL STYLES & THEMING --- */
+        /* --- GLOBAL THEME VARIABLES --- */
         :root {
             --bg-gradient: linear-gradient(135deg, #070510, #161033, #0a192f);
             --glass-bg: rgba(255, 255, 255, 0.08);
@@ -18,9 +18,80 @@
             --text-muted: #a0a0b8;
             --success: #00e676;
             --error: #ff1744;
+            --font-family: 'Poppins', sans-serif;
+            --panel-radius: 28px;
+            --box-shadow: 0 25px 50px rgba(0,0,0,0.5);
         }
 
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Poppins', sans-serif; user-select: none; }
+        /* 1. COMIC POP ART THEME */
+        body.theme-comic {
+            --bg-gradient: radial-gradient(circle, #ffeb3b 10%, #ff5722 90%);
+            background-image: radial-gradient(#000 15%, transparent 16%);
+            background-size: 24px 24px;
+            background-color: #ffeb3b;
+            --glass-bg: rgba(255, 255, 255, 0.95);
+            --glass-border: 4px solid #000000;
+            --accent-neon: #00bcd4;
+            --accent-pink: #e91e63;
+            --fire-gold: #ff9800;
+            --text-main: #000000;
+            --text-muted: #333333;
+            --font-family: 'Bangers', cursive;
+            --panel-radius: 16px;
+            --box-shadow: 8px 8px 0px #000000;
+        }
+        body.theme-comic input, body.theme-comic button, body.theme-comic .glass-panel {
+            border: 3px solid #000000 !important;
+            box-shadow: 4px 4px 0px #000000 !important;
+            font-family: 'Bangers', cursive !important;
+            letter-spacing: 1px;
+        }
+
+        /* 2. VAPORWAVE THEME */
+        body.theme-vaporwave {
+            --bg-gradient: linear-gradient(135deg, #2b1055, #7597de, #ff71ce);
+            --glass-bg: rgba(117, 151, 222, 0.15);
+            --glass-border: rgba(255, 113, 206, 0.4);
+            --accent-neon: #01cdfe;
+            --accent-pink: #ff71ce;
+            --fire-gold: #01ffc4;
+            --text-main: #fff;
+            --text-muted: #b9b3e1;
+        }
+
+        /* 3. MIDNIGHT SPACE THEME */
+        body.theme-space {
+            --bg-gradient: linear-gradient(135deg, #02000a, #11002c, #050511);
+            --glass-bg: rgba(255, 255, 255, 0.04);
+            --glass-border: rgba(140, 82, 255, 0.25);
+            --accent-neon: #9d00ff;
+            --accent-pink: #00ffff;
+            --fire-gold: #ffaa00;
+        }
+
+        /* 4. EMERALD MATRIX THEME */
+        body.theme-matrix {
+            --bg-gradient: linear-gradient(135deg, #020f07, #052614, #010804);
+            --glass-bg: rgba(0, 255, 100, 0.06);
+            --glass-border: rgba(0, 255, 128, 0.25);
+            --accent-neon: #00ff66;
+            --accent-pink: #00ccff;
+            --fire-gold: #ffbb00;
+            --text-main: #e0f8ec;
+        }
+
+        /* 5. ROYAL GOLD THEME */
+        body.theme-gold {
+            --bg-gradient: linear-gradient(135deg, #12100e, #2a241e, #0d0b09);
+            --glass-bg: rgba(255, 215, 0, 0.06);
+            --glass-border: rgba(255, 215, 0, 0.3);
+            --accent-neon: #ffd700;
+            --accent-pink: #ff8800;
+            --fire-gold: #fff;
+            --text-main: #fffaf0;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: var(--font-family); user-select: none; }
 
         body {
             background: var(--bg-gradient);
@@ -41,7 +112,34 @@
             100% { background-position: 0% 50%; }
         }
 
-        /* Top Bar User Status & Logout */
+        /* Hamburger Menu Icon */
+        #menu-btn {
+            position: fixed; top: 15px; left: 20px; z-index: 10002;
+            background: rgba(0,0,0,0.6); backdrop-filter: blur(10px);
+            border: 1px solid var(--glass-border); border-radius: 50%;
+            width: 44px; height: 44px; display: flex; align-items: center; justify-content: center;
+            color: var(--accent-neon); font-size: 1.2rem; cursor: pointer; transition: transform 0.2s;
+        }
+        #menu-btn:hover { transform: scale(1.1); }
+
+        /* Settings Drawer Modal */
+        #settings-drawer {
+            position: fixed; top: 0; left: -320px; width: 300px; height: 100%;
+            background: rgba(10, 10, 25, 0.95); backdrop-filter: blur(20px);
+            border-right: 1px solid var(--glass-border); z-index: 10005;
+            transition: left 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            padding: 30px 20px; display: flex; flex-direction: column; gap: 15px; overflow-y: auto;
+        }
+        #settings-drawer.open { left: 0; }
+        #settings-drawer h3 { color: var(--accent-neon); font-size: 1.3rem; margin-bottom: 5px; }
+        .theme-option-btn {
+            background: rgba(255,255,255,0.08); border: 1px solid var(--glass-border);
+            color: #fff; padding: 10px; border-radius: 12px; font-weight: 600; cursor: pointer; text-align: left;
+            transition: all 0.2s; font-size: 0.9rem;
+        }
+        .theme-option-btn:hover { border-color: var(--accent-neon); background: rgba(0,255,204,0.15); color: var(--accent-neon); }
+
+        /* Top Bar */
         #user-bar {
             position: fixed; top: 15px; right: 20px;
             display: none; align-items: center; gap: 10px;
@@ -50,7 +148,6 @@
         }
         #user-bar .uname { font-weight: 700; color: var(--accent-neon); font-size: 0.85rem; }
         
-        /* Ping Badge */
         .ping-badge {
             background: rgba(255,255,255,0.1); border: 1px solid var(--glass-border);
             border-radius: 12px; padding: 2px 8px; font-size: 0.72rem; font-weight: 800; color: var(--success);
@@ -59,10 +156,27 @@
         .ping-badge.laggy { color: var(--fire-gold); border-color: var(--fire-gold); }
         .ping-badge.bad { color: var(--error); border-color: var(--error); }
 
-        #user-bar .btn-logout { background: transparent; color: var(--error); border: none; font-size: 0.8rem; font-weight: 700; cursor: pointer; padding: 0; margin: 0; width: auto; box-shadow: none; text-transform: uppercase; }
+        #user-bar .btn-logout { background: transparent; color: var(--error); border: none; font-size: 0.8rem; font-weight: 700; cursor: pointer; text-transform: uppercase; }
 
-        /* Small Avatar Bar Image */
-        .bar-pfp { width: 28px; height: 28px; border-radius: 50%; object-fit: cover; border: 1.5px solid var(--accent-neon); }
+        /* Secure PFP & Shield */
+        .secure-pfp-wrapper {
+            position: relative; width: 90px; height: 90px; border-radius: 50%;
+            padding: 3px; background: linear-gradient(45deg, var(--accent-neon), var(--accent-pink));
+            box-shadow: 0 0 25px rgba(0,255,204,0.4); animation: pfpPulse 3s infinite alternate; margin: 0 auto;
+        }
+        @keyframes pfpPulse {
+            0% { box-shadow: 0 0 15px rgba(0,255,204,0.3); transform: scale(1); }
+            100% { box-shadow: 0 0 30px rgba(255,0,127,0.6); transform: scale(1.03); }
+        }
+        .secure-pfp {
+            width: 100%; height: 100%; border-radius: 50%; object-fit: cover;
+            background: #000; pointer-events: none; -webkit-touch-callout: none; user-select: none;
+        }
+        .pfp-shield {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            border-radius: 50%; z-index: 10; background: transparent;
+        }
+        .bar-pfp { width: 28px; height: 28px; border-radius: 50%; object-fit: cover; border: 1.5px solid var(--accent-neon); pointer-events: none; }
 
         /* Toast Container */
         #toast-container {
@@ -83,7 +197,7 @@
         @keyframes slideInDown { from { transform: translateY(-60px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
         @keyframes fadeOut { to { opacity: 0; transform: translateY(-20px); } }
 
-        /* Screen Architecture */
+        /* Screens */
         .screen {
             display: none; flex-direction: column; align-items: center; justify-content: flex-start;
             height: 100%; width: 100%; padding: 40px 20px; overflow-y: auto;
@@ -92,19 +206,17 @@
         }
         .screen.active { display: flex; opacity: 1; transform: translateY(0) scale(1); }
 
-        /* Glass Panel Modals */
         .glass-panel {
             background: var(--glass-bg); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
-            border: 1px solid var(--glass-border); border-radius: 28px;
+            border: 1px solid var(--glass-border); border-radius: var(--panel-radius);
             padding: 26px; width: 100%; max-width: 440px;
-            box-shadow: 0 25px 50px rgba(0,0,0,0.5); margin-bottom: 20px; position: relative;
+            box-shadow: var(--box-shadow); margin-bottom: 20px; position: relative;
         }
 
         h1 { font-size: 2.2rem; font-weight: 800; text-align: center; margin-bottom: 6px; background: linear-gradient(to right, var(--accent-neon), var(--accent-pink)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
         h2 { font-size: 1.25rem; font-weight: 600; margin-bottom: 14px; text-align: center; color: #fff; }
         p { color: var(--text-muted); text-align: center; font-size: 0.9rem; margin-bottom: 18px; }
 
-        /* Inputs & Buttons */
         .input-group { width: 100%; margin-bottom: 12px; }
         .input-group label { display: block; font-size: 0.78rem; color: var(--accent-neon); margin-bottom: 5px; font-weight: 600; text-transform: uppercase; }
         
@@ -125,11 +237,11 @@
         }
         button:active { transform: translateY(3px) scale(0.98); }
         button.pink { background: linear-gradient(45deg, var(--accent-pink), #ff5500); color: #fff; box-shadow: 0 10px 25px rgba(255, 0, 127, 0.3); }
+        button.pool-btn { background: linear-gradient(45deg, #00c853, #64dd17); color: #000; box-shadow: 0 10px 25px rgba(0, 200, 83, 0.3); }
         button.rejoin-btn { background: linear-gradient(45deg, #00e676, #00b0ff); color: #000; box-shadow: 0 10px 25px rgba(0, 230, 118, 0.3); }
         button.secondary { background: rgba(255,255,255,0.08); color: #fff; box-shadow: none; border: 1px solid var(--glass-border); }
         button:disabled { background: #222 !important; color: #666 !important; cursor: not-allowed; box-shadow: none !important; transform: none !important; }
 
-        /* Party Code Display Box */
         .code-display {
             background: rgba(0,0,0,0.6); border: 2px dashed var(--accent-neon);
             border-radius: 20px; padding: 12px; text-align: center; margin-bottom: 16px;
@@ -137,7 +249,7 @@
         .code-display .code-title { font-size: 0.75rem; color: var(--text-muted); letter-spacing: 2px; }
         .code-display .code-value { font-size: 2rem; font-weight: 800; color: var(--accent-neon); letter-spacing: 6px; }
 
-        /* --- FLOATING PROFILES ARENA & DISCONNECTED STATUS --- */
+        /* Floating Profiles Arena */
         #floating-arena {
             width: 100%; height: 270px; background: rgba(0,0,0,0.4);
             border-radius: 20px; border: 1px solid var(--glass-border);
@@ -152,27 +264,14 @@
             align-items: center; justify-content: center; color: #fff;
             cursor: grab; touch-action: none; box-shadow: 0 8px 20px rgba(0,255,204,0.2);
             animation: floatBob 3s ease-in-out infinite alternate;
-            transition: border-color 0.3s, opacity 0.3s;
         }
-        .profile-bubble.offline {
-            border-color: var(--error) !important;
-            opacity: 0.6;
-            filter: grayscale(0.7);
-        }
-        .profile-bubble:active { cursor: grabbing; border-color: var(--accent-pink); }
-        
-        .profile-bubble .p-avatar-img {
-            width: 44px; height: 44px; border-radius: 50%; object-fit: cover; margin-bottom: 2px;
-            border: 1px solid rgba(255,255,255,0.5);
-        }
-        .profile-bubble .p-avatar-emoji { font-size: 1.5rem; }
+        .profile-bubble.offline { border-color: var(--error) !important; opacity: 0.6; filter: grayscale(0.7); }
+        .profile-bubble .p-avatar-img { width: 44px; height: 44px; border-radius: 50%; object-fit: cover; margin-bottom: 2px; border: 1px solid rgba(255,255,255,0.5); pointer-events: none; }
         .profile-bubble .p-name { font-size: 0.7rem; font-weight: 700; max-width: 75px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-
-        /* Disconnected Status Tag */
         .status-tag {
             position: absolute; bottom: -18px; left: 50%; transform: translateX(-50%);
             background: var(--error); color: #fff; font-size: 0.6rem; font-weight: 800;
-            padding: 2px 8px; border-radius: 10px; white-space: nowrap; box-shadow: 0 4px 10px rgba(255,23,68,0.5);
+            padding: 2px 8px; border-radius: 10px; white-space: nowrap;
         }
 
         @keyframes floatBob {
@@ -180,31 +279,57 @@
             100% { transform: translateY(-12px) rotate(2deg); }
         }
 
-        /* --- CAMERA & PFP SELECTOR --- */
-        .pfp-preview-container {
-            display: flex; flex-direction: column; align-items: center; margin-bottom: 15px;
+        /* --- 8 BALL POOL DUELS MODAL & ARENA --- */
+        #modal-pool-setup {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.85); backdrop-filter: blur(15px);
+            z-index: 20000; display: none; align-items: center; justify-content: center;
+            animation: fadeInModal 0.3s ease forwards;
         }
-        #pfp-preview {
-            width: 90px; height: 90px; border-radius: 50%; object-fit: cover;
-            border: 3px solid var(--accent-neon); box-shadow: 0 0 20px rgba(0,255,204,0.4);
-            margin-bottom: 10px; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center;
-            font-size: 2.2rem;
-        }
-        #camera-video { width: 100%; border-radius: 16px; margin-bottom: 10px; display: none; background: #000; }
-        #canvas-capture { display: none; }
+        @keyframes fadeInModal { from { opacity: 0; transform: scale(0.9); } to { opacity: 1; transform: scale(1); } }
 
-        /* Leaderboard List */
-        .list-container { width: 100%; max-height: 45vh; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; }
-        .list-item { display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; background: rgba(0,0,0,0.35); border-radius: 16px; border: 1px solid var(--glass-border); }
-        .list-item .name-box { display: flex; align-items: center; gap: 10px; font-weight: 600; }
-        .list-item .list-pfp { width: 32px; height: 32px; border-radius: 50%; object-fit: cover; }
-        .exp-tag { background: var(--accent-neon); color: #000; padding: 3px 10px; border-radius: 12px; font-weight: 800; font-size: 0.82rem; }
+        #pool-canvas {
+            background: #0d421d; border: 6px solid #5c3818; border-radius: 12px;
+            box-shadow: inset 0 0 30px rgba(0,0,0,0.8); display: block; margin: 0 auto 12px auto;
+            touch-action: none;
+        }
+
+        .pool-hud {
+            display: flex; justify-content: space-between; align-items: center;
+            background: rgba(0,0,0,0.5); padding: 8px 14px; border-radius: 12px; margin-bottom: 10px;
+            font-size: 0.82rem; font-weight: 700; color: var(--accent-neon);
+        }
+
+        /* Friend List & Modal */
+        .friend-item { display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; background: rgba(0,0,0,0.3); border-radius: 12px; margin-bottom: 8px; }
     </style>
 </head>
 <body>
 
+    <div id="menu-btn">☰</div>
+
+    <div id="settings-drawer">
+        <h3>Settings & Themes</h3>
+        <p style="text-align: left; margin-bottom: 5px; font-size: 0.8rem;">Customize your app look</p>
+        
+        <button class="theme-option-btn" onclick="setTheme('default')">⚡ Cyberpunk Neon</button>
+        <button class="theme-option-btn" onclick="setTheme('comic')">💥 Comic Pop Art</button>
+        <button class="theme-option-btn" onclick="setTheme('vaporwave')">🌆 Sunset Vaporwave</button>
+        <button class="theme-option-btn" onclick="setTheme('space')">🌌 Midnight Space</button>
+        <button class="theme-option-btn" onclick="setTheme('matrix')">💻 Emerald Matrix</button>
+        <button class="theme-option-btn" onclick="setTheme('gold')">👑 Royal Gold</button>
+
+        <div style="margin-top: 15px; border-top: 1px solid var(--glass-border); padding-top: 15px;">
+            <button class="secondary" id="btn-drawer-changepfp" style="font-size:0.8rem;">📸 Change Profile Picture</button>
+            <button class="secondary" id="btn-drawer-addfriend" style="font-size:0.8rem; margin-top: 8px;">👥 Add Friend</button>
+        </div>
+    </div>
+
     <div id="user-bar">
-        <img id="bar-pfp-img" class="bar-pfp" src="" style="display:none;">
+        <div style="position:relative; width:28px; height:28px;">
+            <img id="bar-pfp-img" class="bar-pfp" src="" style="display:none;">
+            <div class="pfp-shield"></div>
+        </div>
         <span class="uname" id="bar-username">User</span>
         <div id="ping-display" class="ping-badge">--ms 📶</div>
         <button class="btn-logout" id="btn-logout">Log Out</button>
@@ -212,27 +337,38 @@
 
     <div id="toast-container"></div>
 
-    <div id="screen-auth" class="screen active">
-        <div class="glass-panel" style="margin-top: 20px;">
-            <h1>Nizzlers</h1>
-            <p>Create your profile & take a picture</p>
-            
-            <div class="pfp-preview-container">
-                <div id="pfp-preview">👤</div>
-                <video id="camera-video" autoplay playsinline></video>
-                <canvas id="canvas-capture" width="200" height="200"></canvas>
-                
-                <div style="display: flex; gap: 8px; width: 100%;">
-                    <button id="btn-take-photo" class="secondary" style="font-size:0.75rem; padding: 10px;">📸 Take Snap</button>
-                    <button id="btn-snap-confirm" class="pink" style="display:none; font-size:0.75rem; padding: 10px;">Capture!</button>
-                    <button id="btn-upload-file" class="secondary" style="font-size:0.75rem; padding: 10px;">📁 Upload</button>
-                    <input type="file" id="pfp-file-input" accept="image/*" style="display:none;">
-                </div>
+    <div id="modal-pool-setup">
+        <div class="glass-panel" style="max-width: 380px; text-align: center;">
+            <h1>🎱 Pool Duels</h1>
+            <p>Select your match mode to launch party table</p>
+            <div style="display: flex; gap: 10px; margin-bottom: 15px;">
+                <button id="btn-pool-1v1" class="pool-btn">⚔️ 1v1 Duel</button>
+                <button id="btn-pool-2v2" class="pool-btn pink">🛡️ 2v2 Team</button>
             </div>
+            <button id="btn-pool-modal-cancel" class="secondary">Cancel</button>
+        </div>
+    </div>
+
+    <div id="modal-add-friend" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); backdrop-filter: blur(15px); z-index: 20000; display: none; align-items: center; justify-content: center;">
+        <div class="glass-panel" style="max-width: 380px;">
+            <h2>Add Friend</h2>
+            <p>Enter friend's username (No spaces, only underscores _ and hyphens -)</p>
+            <div class="input-group">
+                <input type="text" id="friend-username-input" placeholder="e.g. nizzler_king-1" autocomplete="off">
+            </div>
+            <button id="btn-submit-friend" class="pink">Send Friend Request</button>
+            <button id="btn-close-friend" class="secondary">Close</button>
+        </div>
+    </div>
+
+    <div id="screen-auth" class="screen active">
+        <div class="glass-panel" style="margin-top: 50px;">
+            <h1>Nizzlers</h1>
+            <p>Sign in to your game night account</p>
 
             <div class="input-group">
                 <label>Username</label>
-                <input type="text" id="auth-user" placeholder="e.g. Lilo, Lana, Owen..." autocomplete="off">
+                <input type="text" id="auth-user" placeholder="e.g. Lilo_Queen" autocomplete="off">
             </div>
 
             <div class="input-group">
@@ -244,13 +380,39 @@
         </div>
     </div>
 
+    <div id="screen-profile-setup" class="screen">
+        <div class="glass-panel" style="margin-top: 20px;">
+            <h1>Profile Picture</h1>
+            <p>Snap or upload your custom avatar</p>
+            
+            <div style="display: flex; flex-direction: column; align-items: center; margin-bottom: 15px;">
+                <div class="secure-pfp-wrapper">
+                    <div id="pfp-preview" style="width:100%; height:100%; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:2rem; background:#111;">👤</div>
+                    <div class="pfp-shield"></div>
+                </div>
+                <video id="camera-video" autoplay playsinline style="width:100%; max-height:200px; border-radius:16px; margin-top:10px; display:none; background:#000;"></video>
+                <canvas id="canvas-capture" width="200" height="200" style="display:none;"></canvas>
+            </div>
+
+            <div style="display: flex; gap: 8px; width: 100%; margin-bottom: 15px;">
+                <button id="btn-take-photo" class="secondary" style="font-size:0.75rem; padding: 10px;">📸 Take Snap</button>
+                <button id="btn-snap-confirm" class="pink" style="display:none; font-size:0.75rem; padding: 10px;">Capture!</button>
+                <button id="btn-upload-file" class="secondary" style="font-size:0.75rem; padding: 10px;">📁 Upload</button>
+                <input type="file" id="pfp-file-input" accept="image/*" style="display:none;">
+            </div>
+
+            <button id="btn-profile-continue" class="pink">Save & Continue 🚀</button>
+        </div>
+    </div>
+
     <div id="screen-mode" class="screen">
         <div class="glass-panel">
             <h1>Game Night</h1>
-            <p>Create room, enter code, or rejoin</p>
+            <p>Create room, enter code, or play Pool Duels</p>
 
             <button id="btn-rejoin-party" class="rejoin-btn" style="display: none;">↩️ Rejoin Party (<span id="rejoin-code-text">------</span>)</button>
-            <button id="btn-mode-create" class="pink">🎮 Create New Game</button>
+            <button id="btn-mode-create" class="pink">🎮 Create Trivia Party</button>
+            <button id="btn-mode-pool" class="pool-btn">🎱 8 Ball Pool Duels (1v1 / 2v2)</button>
             
             <div style="margin: 16px 0; border-top: 1px solid var(--glass-border);"></div>
 
@@ -280,6 +442,30 @@
         </div>
     </div>
 
+    <div id="screen-pool" class="screen">
+        <div class="glass-panel" style="max-width: 480px; padding: 20px;">
+            <div class="pool-hud">
+                <span id="pool-mode-display">Mode: 1v1</span>
+                <span id="pool-streak-display">🔥 Streak: 0</span>
+                <span id="pool-clock">⏱️ 03:00</span>
+            </div>
+            
+            <p id="pool-turn-text" style="margin-bottom: 10px;">Aim your cue stick and adjust power!</p>
+            
+            <canvas id="pool-canvas" width="420" height="240"></canvas>
+
+            <div class="input-group" style="margin-bottom: 10px;">
+                <label>Power Controller: <span id="power-val">50</span>%</label>
+                <input type="range" id="pool-power-slider" min="10" max="100" value="50" style="width:100%; accent-color: var(--accent-neon);">
+            </div>
+
+            <div style="display: flex; gap: 10px;">
+                <button id="btn-pool-shoot" class="pool-btn">🎯 Shoot Cue Ball</button>
+                <button id="btn-leave-pool" class="secondary" style="border-color: var(--error); color: var(--error);">Exit Pool</button>
+            </div>
+        </div>
+    </div>
+
     <div id="screen-player" class="screen">
         <div class="glass-panel">
             <h2 id="display-q" style="min-height: 70px; display: flex; align-items: center; justify-content: center;">Waiting for host to deploy question...</h2>
@@ -301,7 +487,7 @@
     <div id="screen-leaderboard" class="screen">
         <div class="glass-panel" style="max-height: 80vh; display: flex; flex-direction: column;">
             <h1>Leaderboard</h1>
-            <div class="list-container" id="leaderboard-list" style="flex-grow: 1;"></div>
+            <div class="list-container" id="leaderboard-list" style="flex-grow: 1; overflow-y:auto; display:flex; flex-direction:column; gap:8px;"></div>
             <button id="btn-back-game" style="margin-top: 15px;">Return to Game</button>
         </div>
     </div>
@@ -333,7 +519,20 @@
         let cameraStream = null;
         let badWifiNotified = {};
 
-        // Screen Navigation & Toast
+        // Theme Manager
+        window.setTheme = function(themeName) {
+            document.body.className = themeName === 'default' ? '' : `theme-${themeName}`;
+            localStorage.setItem('nizzler_theme', themeName);
+            document.getElementById('settings-drawer').classList.remove('open');
+            showToast(`Theme applied: ${themeName}`, "success");
+        };
+        const savedTheme = localStorage.getItem('nizzler_theme');
+        if (savedTheme) setTheme(savedTheme);
+
+        document.getElementById('menu-btn').addEventListener('click', () => {
+            document.getElementById('settings-drawer').classList.toggle('open');
+        });
+
         function switchScreen(id) {
             document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
             setTimeout(() => document.getElementById(id).classList.add('active'), 50);
@@ -348,7 +547,45 @@
             setTimeout(() => toast.remove(), 3200);
         }
 
-        // --- CAMERA & PFP LOGIC ---
+        // --- USERNAME VALIDATION & FRIEND SYSTEM ---
+        function validateUsernameInput(username) {
+            if (username.includes(" ")) {
+                showToast("Error: Username cannot contain spaces. Please rename your username.", "error");
+                return false;
+            }
+            // Allow only letters, numbers, underscores, and hyphens
+            const validRegex = /^[a-zA-Z0-9_-]+$/;
+            if (!validRegex.test(username)) {
+                showToast("Error: Special characters are not allowed except underscore (_) and hyphen (-).", "error");
+                return false;
+            }
+            return true;
+        }
+
+        document.getElementById('btn-drawer-addfriend').addEventListener('click', () => {
+            document.getElementById('settings-drawer').classList.remove('open');
+            document.getElementById('modal-add-friend').style.display = 'flex';
+        });
+        document.getElementById('btn-close-friend').addEventListener('click', () => {
+            document.getElementById('modal-add-friend').style.display = 'none';
+        });
+
+        document.getElementById('btn-submit-friend').addEventListener('click', () => {
+            const friendName = document.getElementById('friend-username-input').value.trim();
+            if (!friendName) return showToast("Enter a username!", "error");
+            if (!validateUsernameInput(friendName)) return;
+
+            document.getElementById('modal-add-friend').style.display = 'none';
+            showToast(`Friend request sent to @${friendName}!`, "success");
+            document.getElementById('friend-username-input').value = '';
+        });
+
+        // --- CHANGE / SETUP PFP ---
+        document.getElementById('btn-drawer-changepfp').addEventListener('click', () => {
+            document.getElementById('settings-drawer').classList.remove('open');
+            switchScreen('screen-profile-setup');
+        });
+
         const btnTakePhoto = document.getElementById('btn-take-photo');
         const btnSnapConfirm = document.getElementById('btn-snap-confirm');
         const btnUploadFile = document.getElementById('btn-upload-file');
@@ -358,7 +595,7 @@
         const pfpPreview = document.getElementById('pfp-preview');
 
         if (myPfpBase64) {
-            pfpPreview.innerHTML = `<img src="${myPfpBase64}" style="width:100%; height:100%; border-radius:50%; object-fit:cover;">`;
+            pfpPreview.innerHTML = `<img src="${myPfpBase64}" class="secure-pfp">`;
         }
 
         btnTakePhoto.addEventListener('click', async () => {
@@ -379,11 +616,10 @@
             ctx.drawImage(cameraVideo, 0, 0, 200, 200);
             myPfpBase64 = canvasCapture.toDataURL('image/jpeg', 0.8);
             
-            // Stop Camera
             if (cameraStream) cameraStream.getTracks().forEach(track => track.stop());
             cameraVideo.style.display = 'none';
             pfpPreview.style.display = 'flex';
-            pfpPreview.innerHTML = `<img src="${myPfpBase64}" style="width:100%; height:100%; border-radius:50%; object-fit:cover;">`;
+            pfpPreview.innerHTML = `<img src="${myPfpBase64}" class="secure-pfp">`;
             
             btnTakePhoto.style.display = 'block';
             btnSnapConfirm.style.display = 'none';
@@ -398,7 +634,7 @@
                 const reader = new FileReader();
                 reader.onload = function(evt) {
                     myPfpBase64 = evt.target.result;
-                    pfpPreview.innerHTML = `<img src="${myPfpBase64}" style="width:100%; height:100%; border-radius:50%; object-fit:cover;">`;
+                    pfpPreview.innerHTML = `<img src="${myPfpBase64}" class="secure-pfp">`;
                     localStorage.setItem('nizzler_pfp', myPfpBase64);
                     showToast("Photo uploaded successfully!", "success");
                 };
@@ -406,34 +642,14 @@
             }
         });
 
-        // --- PING TESTER & HEARTBEAT ENGINE ---
-        let currentPing = 0;
-        setInterval(async () => {
-            if (!myPlayerId) return;
-            const start = Date.now();
-            try {
-                // Ping test check against Firestore timestamp
-                await getDoc(doc(db, "users", myPlayerId));
-                currentPing = Date.now() - start;
+        document.getElementById('btn-profile-continue').addEventListener('click', async () => {
+            if (myPlayerId) {
+                await updateDoc(doc(db, "users", myPlayerId), { pfp: myPfpBase64 }).catch(()=>{});
+            }
+            checkPersistentAuth();
+        });
 
-                // Update UI Ping Tester Badge
-                const badge = document.getElementById('ping-display');
-                badge.innerText = `${currentPing}ms 📶`;
-                badge.className = 'ping-badge';
-                if (currentPing > 150 && currentPing <= 300) badge.classList.add('laggy');
-                if (currentPing > 300) badge.classList.add('bad');
-
-                // If inside a party, update online heartbeat & current ping
-                if (currentPartyCode) {
-                    updateDoc(doc(db, "parties", currentPartyCode, "players", myPlayerId), {
-                        lastSeen: Date.now(),
-                        ping: currentPing
-                    }).catch(()=>{});
-                }
-            } catch(e) {}
-        }, 3500);
-
-        // --- AUTH CHECK ---
+        // --- AUTH & CLEAN LOGOUT ---
         async function checkPersistentAuth() {
             if (myPlayerId && myUsername) {
                 document.getElementById('user-bar').style.display = 'flex';
@@ -463,25 +679,35 @@
             const u = document.getElementById('auth-user').value.trim();
             const p = document.getElementById('auth-pass').value.trim();
             if (!u || !p) return showToast("Enter username and password!", "error");
+            if (!validateUsernameInput(u)) return;
 
             myUsername = u;
-            myPlayerId = 'usr_' + u.toLowerCase().replace(/\s+/g, '');
+            myPlayerId = 'usr_' + u.toLowerCase().replace(/[^a-z0-9_-]/g, '');
 
             const pRef = doc(db, "users", myPlayerId);
             const pSnap = await getDoc(pRef);
 
             if (!pSnap.exists()) {
-                await setDoc(pRef, { name: u, pass: p, pfp: myPfpBase64, createdAt: Date.now() });
+                await setDoc(pRef, { name: u, pass: p, pfp: "", createdAt: Date.now() });
+                localStorage.setItem('nizzler_id', myPlayerId);
+                localStorage.setItem('nizzler_name', myUsername);
+                switchScreen('screen-profile-setup');
+                return;
             } else if (pSnap.data().pass !== p) {
                 return showToast("Incorrect password!", "error");
             } else {
-                await updateDoc(pRef, { pfp: myPfpBase64 });
+                myPfpBase64 = pSnap.data().pfp || '';
+                localStorage.setItem('nizzler_pfp', myPfpBase64);
             }
 
             localStorage.setItem('nizzler_id', myPlayerId);
             localStorage.setItem('nizzler_name', myUsername);
 
-            checkPersistentAuth();
+            if (!myPfpBase64) {
+                switchScreen('screen-profile-setup');
+            } else {
+                checkPersistentAuth();
+            }
             showToast(`Logged in as ${myUsername}!`, "success");
         });
 
@@ -489,11 +715,17 @@
             await leaveCurrentParty();
             localStorage.clear();
             myPlayerId = null; myUsername = null; currentPartyCode = null; myPfpBase64 = '';
+
+            document.getElementById('auth-user').value = '';
+            document.getElementById('auth-pass').value = '';
+            document.getElementById('join-code-input').value = '';
+            document.getElementById('bar-pfp-img').style.display = 'none';
+
             checkPersistentAuth();
             showToast("Logged out successfully.", "info");
         });
 
-        // REJOIN PARTY HANDLER
+        // REJOIN PARTY
         document.getElementById('btn-rejoin-party').addEventListener('click', async () => {
             if (!currentPartyCode) return;
             const partySnap = await getDoc(doc(db, "parties", currentPartyCode));
@@ -503,7 +735,7 @@
             isHost = (partyData.hostId === myPlayerId);
 
             await setDoc(doc(db, "parties", currentPartyCode, "players", myPlayerId), {
-                name: myUsername, pfp: myPfpBase64, exp: 0, lastAnswer: "", isHost: isHost, x: 30, y: 30, lastSeen: Date.now(), ping: currentPing
+                name: myUsername, pfp: myPfpBase64, exp: 0, lastAnswer: "", isHost: isHost, x: 30, y: 30, lastSeen: Date.now(), ping: 25
             }, { merge: true });
 
             setupPartyListeners();
@@ -511,7 +743,6 @@
             showToast(`Rejoined Party ${currentPartyCode}!`, "success");
         });
 
-        // PARTY CREATION & JOINING
         function generatePartyCode() { return Math.floor(100000 + Math.random() * 900000).toString(); }
 
         document.getElementById('btn-mode-create').addEventListener('click', async () => {
@@ -520,12 +751,11 @@
             localStorage.setItem('nizzler_party_code', currentPartyCode);
 
             await setDoc(doc(db, "parties", currentPartyCode), {
-                hostId: myPlayerId, status: 'lobby', created: Date.now(),
-                question: "", optA: "", optB: ""
+                hostId: myPlayerId, status: 'lobby', created: Date.now(), question: "", optA: "", optB: ""
             });
 
             await setDoc(doc(db, "parties", currentPartyCode, "players", myPlayerId), {
-                name: myUsername, pfp: myPfpBase64, exp: 0, lastAnswer: "", isHost: true, x: 20, y: 20, lastSeen: Date.now(), ping: currentPing
+                name: myUsername, pfp: myPfpBase64, exp: 0, lastAnswer: "", isHost: true, x: 20, y: 20, lastSeen: Date.now(), ping: 25
             });
 
             setupPartyListeners();
@@ -545,7 +775,7 @@
             localStorage.setItem('nizzler_party_code', currentPartyCode);
 
             await setDoc(doc(db, "parties", currentPartyCode, "players", myPlayerId), {
-                name: myUsername, pfp: myPfpBase64, exp: 0, lastAnswer: "", isHost: false, x: Math.random()*150, y: Math.random()*100, lastSeen: Date.now(), ping: currentPing
+                name: myUsername, pfp: myPfpBase64, exp: 0, lastAnswer: "", isHost: false, x: Math.random()*150, y: Math.random()*100, lastSeen: Date.now(), ping: 25
             });
 
             setupPartyListeners();
@@ -553,7 +783,175 @@
             showToast(`Joined Party ${currentPartyCode}!`, "success");
         });
 
-        // --- REALTIME LOBBY & BAD WIFI / DISCONNECTED LOGIC ---
+        // --- 8 BALL POOL FULL SIMULATION MATCH ---
+        document.getElementById('btn-mode-pool').addEventListener('click', () => {
+            document.getElementById('modal-pool-setup').style.display = 'flex';
+        });
+        document.getElementById('btn-pool-modal-cancel').addEventListener('click', () => {
+            document.getElementById('modal-pool-setup').style.display = 'none';
+        });
+
+        document.getElementById('btn-pool-1v1').addEventListener('click', () => launchPoolMatch("1v1"));
+        document.getElementById('btn-pool-2v2').addEventListener('click', () => launchPoolMatch("2v2"));
+
+        function launchPoolMatch(mode) {
+            document.getElementById('modal-pool-setup').style.display = 'none';
+            document.getElementById('pool-mode-display').innerText = `Mode: ${mode}`;
+            switchScreen('screen-pool');
+            initFullPoolSimulation();
+            showToast(`🎱 Pool ${mode} Party Code Room Started! Stakes Active!`, "success");
+        }
+
+        document.getElementById('pool-power-slider').addEventListener('input', (e) => {
+            document.getElementById('power-val').innerText = e.target.value;
+        });
+
+        function initFullPoolSimulation() {
+            const canvas = document.getElementById('pool-canvas');
+            const ctx = canvas.getContext('2d');
+            
+            let streak = 0;
+            let secondsLeft = 180;
+            const clockInterval = setInterval(() => {
+                secondsLeft--;
+                let m = String(Math.floor(secondsLeft / 60)).padStart(2, '0');
+                let s = String(secondsLeft % 60).padStart(2, '0');
+                document.getElementById('pool-clock').innerText = `⏱️ ${m}:${s}`;
+                if (secondsLeft <= 0) clearInterval(clockInterval);
+            }, 1000);
+
+            // Table cushions / boundaries
+            const tableBounds = { xMin: 20, xMax: 400, yMin: 20, yMax: 220 };
+            
+            let cueBall = { x: 100, y: 120, vx: 0, vy: 0, radius: 7, color: '#ffffff' };
+            let balls = [];
+
+            // Rack 15 object balls in triangle
+            let startX = 280, startY = 120;
+            let spacing = 15;
+            let count = 1;
+            let colors = ['#ffcc00', '#0033cc', '#cc0000', '#660066', '#ff6600', '#006600', '#663300', '#111111', '#ff99cc', '#3399ff', '#ff3333', '#9933ff', '#ff9933', '#33cc33', '#996633'];
+            
+            for (let col = 0; col < 5; col++) {
+                for (let row = 0; row <= col; row++) {
+                    balls.push({
+                        x: startX + (col * spacing * 0.866),
+                        y: startY + ((row - col / 2) * spacing),
+                        vx: 0, vy: 0, radius: 7,
+                        color: colors[balls.length % colors.length],
+                        potted: false
+                    });
+                }
+            }
+
+            const pockets = [
+                {x: 15, y: 15}, {x: 210, y: 15}, {x: 405, y: 15},
+                {x: 15, y: 225}, {x: 210, y: 225}, {x: 405, y: 225}
+            ];
+
+            function drawTable() {
+                ctx.fillStyle = '#0d421d';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                // Pockets
+                ctx.fillStyle = '#000000';
+                pockets.forEach(p => {
+                    ctx.beginPath(); ctx.arc(p.x, p.y, 11, 0, Math.PI*2); ctx.fill();
+                });
+
+                // Cue Ball
+                ctx.fillStyle = cueBall.color;
+                ctx.beginPath(); ctx.arc(cueBall.x, cueBall.y, cueBall.radius, 0, Math.PI*2); ctx.fill();
+
+                // Object Balls
+                balls.forEach(b => {
+                    if (!b.potted) {
+                        ctx.fillStyle = b.color;
+                        ctx.beginPath(); ctx.arc(b.x, b.y, b.radius, 0, Math.PI*2); ctx.fill();
+                        ctx.strokeStyle = '#fff'; ctx.lineWidth = 1; ctx.stroke();
+                    }
+                });
+            }
+
+            function updatePhysics() {
+                // Cue ball motion & friction
+                cueBall.x += cueBall.vx; cueBall.y += cueBall.vy;
+                cueBall.vx *= 0.985; cueBall.vy *= 0.985;
+
+                // Wall bounds (balls cannot leave the table)
+                if (cueBall.x - cueBall.radius < tableBounds.xMin) { cueBall.x = tableBounds.xMin + cueBall.radius; cueBall.vx *= -0.8; }
+                if (cueBall.x + cueBall.radius > tableBounds.xMax) { cueBall.x = tableBounds.xMax - cueBall.radius; cueBall.vx *= -0.8; }
+                if (cueBall.y - cueBall.radius < tableBounds.yMin) { cueBall.y = tableBounds.yMin + cueBall.radius; cueBall.vy *= -0.8; }
+                if (cueBall.y + cueBall.radius > tableBounds.yMax) { cueBall.y = tableBounds.yMax - cueBall.radius; cueBall.vy *= -0.8; }
+
+                // Object balls physics
+                balls.forEach(b => {
+                    if (!b.potted) {
+                        b.x += b.vx; b.y += b.vy;
+                        b.vx *= 0.985; b.vy *= 0.985;
+
+                        if (b.x - b.radius < tableBounds.xMin) { b.x = tableBounds.xMin + b.radius; b.vx *= -0.8; }
+                        if (b.x + b.radius > tableBounds.xMax) { b.x = tableBounds.xMax - b.radius; b.vx *= -0.8; }
+                        if (b.y - b.radius < tableBounds.yMin) { b.y = tableBounds.yMin + b.radius; b.vy *= -0.8; }
+                        if (b.y + b.radius > tableBounds.yMax) { b.y = tableBounds.yMax - tableBounds.yMax; b.y = tableBounds.yMax - b.radius; b.vy *= -0.8; }
+
+                        // Check pocket scoring
+                        pockets.forEach(p => {
+                            if (Math.hypot(b.x - p.x, b.y - p.y) < 13) {
+                                b.potted = true;
+                                streak++;
+                                document.getElementById('pool-streak-display').innerText = `🔥 Streak: ${streak}`;
+                                showToast("🎯 Pocketed Object Ball! +1 Win Streak", "success");
+                            }
+                        });
+                    }
+                });
+
+                // Ball-to-ball collisions
+                for (let i = 0; i < balls.length; i++) {
+                    for (let j = i + 1; j < balls.length; j++) {
+                        let b1 = balls[i], b2 = balls[j];
+                        if (!b1.potted && !b2.potted) {
+                            let dist = Math.hypot(b1.x - b2.x, b1.y - b2.y);
+                            if (dist < b1.radius + b2.radius) {
+                                let tempVx = b1.vx; let tempVy = b1.vy;
+                                b1.vx = b2.vx * 0.9; b1.vy = b2.vy * 0.9;
+                                b2.vx = tempVx * 0.9; b2.vy = tempVy * 0.9;
+                            }
+                        }
+                    }
+                    // Cue ball collision with object ball
+                    let b = balls[i];
+                    if (!b.potted) {
+                        let dist = Math.hypot(cueBall.x - b.x, cueBall.y - b.y);
+                        if (dist < cueBall.radius + b.radius) {
+                            b.vx = cueBall.vx * 0.85;
+                            b.vy = cueBall.vy * 0.85;
+                            cueBall.vx *= -0.3; cueBall.vy *= -0.3;
+                        }
+                    }
+                }
+
+                drawTable();
+                requestAnimationFrame(updatePhysics);
+            }
+
+            document.getElementById('btn-pool-shoot').onclick = () => {
+                const power = parseInt(document.getElementById('pool-power-slider').value) / 10;
+                cueBall.vx = power;
+                cueBall.vy = (Math.random() - 0.5) * (power * 0.5);
+                showToast(`Cue shot fired with ${document.getElementById('pool-power-slider').value}% power!`, "info");
+            };
+
+            document.getElementById('btn-leave-pool').onclick = () => {
+                clearInterval(clockInterval);
+                switchScreen('screen-mode');
+            };
+
+            updatePhysics();
+        }
+
+        // --- REALTIME PARTY LOBBY ---
         function setupPartyListeners() {
             if (!currentPartyCode) return;
             document.getElementById('party-code-tag').innerText = currentPartyCode;
@@ -570,7 +968,6 @@
                 const data = snap.data();
                 if (data.hostId === myPlayerId && !isHost) {
                     isHost = true;
-                    showToast("👑 You are now the Party Host!", "warning");
                     updateDoc(doc(db, "parties", currentPartyCode, "players", myPlayerId), { isHost: true });
                 }
 
@@ -579,11 +976,8 @@
                     document.getElementById('display-q').innerText = data.question || "Round Started!";
                     document.getElementById('btn-opt-a').innerText = data.optA || "Option A";
                     document.getElementById('btn-opt-b').innerText = data.optB || "Option B";
-                    
                     document.getElementById('btn-opt-a').disabled = false;
                     document.getElementById('btn-opt-b').disabled = false;
-                    document.getElementById('btn-opt-a').style.opacity = '1';
-                    document.getElementById('btn-opt-b').style.opacity = '1';
 
                     if (isHost) document.getElementById('host-game-controls').style.display = 'block';
                 }
@@ -601,19 +995,9 @@
                     const p = { id: d.id, ...d.data() };
                     players.push(p);
 
-                    // Determine if player is disconnected (last heartbeat > 10s)
                     const isDisconnected = (now - (p.lastSeen || 0)) > 10000;
-
                     if (p.isHost && !isDisconnected) hasActiveHost = true;
 
-                    // BAD WIFI POPUP BROADCAST ALERT (ping > 300ms)
-                    if (p.ping > 300 && !badWifiNotified[p.id]) {
-                        badWifiNotified[p.id] = true;
-                        showToast(`⚠️ ${p.name} has bad Wi-Fi! (${p.ping}ms)`, "warning");
-                        setTimeout(() => delete badWifiNotified[p.id], 15000); // Cooldown
-                    }
-
-                    // Render Floating Profile Bubble
                     const bubble = document.createElement('div');
                     bubble.className = `profile-bubble ${isDisconnected ? 'offline' : ''}`;
                     bubble.style.left = `${p.x || 20}px`;
@@ -621,7 +1005,7 @@
                     
                     const avatarHtml = p.pfp 
                         ? `<img src="${p.pfp}" class="p-avatar-img">`
-                        : `<div class="p-avatar-emoji">${p.isHost ? '👑' : '🎮'}</div>`;
+                        : `<div style="font-size:1.5rem;">${p.isHost ? '👑' : '🎮'}</div>`;
 
                     bubble.innerHTML = `
                         ${avatarHtml}
@@ -633,7 +1017,6 @@
                     arena.appendChild(bubble);
                 });
 
-                // HOST MIGRATION (If current host disconnected or left)
                 if (!hasActiveHost && players.length > 0) {
                     const connectedPlayers = players.filter(p => (now - (p.lastSeen || 0)) <= 10000);
                     if (connectedPlayers.length > 0) {
@@ -643,38 +1026,30 @@
                     }
                 }
 
-                // Lobby Rules
                 const startBtn = document.getElementById('btn-start-game');
                 document.getElementById('lobby-count-text').innerText = `Players Joined: (${players.length} / 3 min)`;
 
                 if (isHost) {
                     startBtn.style.display = 'block';
-                    if (players.length >= 3) {
-                        startBtn.disabled = false;
-                        startBtn.innerText = "🚀 Start Game Anyway";
-                    } else {
-                        startBtn.disabled = true;
-                        startBtn.innerText = `Start Game (Need ${3 - players.length} More)`;
-                    }
+                    startBtn.disabled = players.length < 3;
+                    startBtn.innerText = players.length >= 3 ? "🚀 Start Game Anyway" : `Start Game (Need ${3 - players.length} More)`;
                 } else {
                     startBtn.style.display = 'none';
                 }
 
-                // Leaderboard Update
                 players.sort((a, b) => b.exp - a.exp);
                 document.getElementById('leaderboard-list').innerHTML = players.map((p, i) => `
-                    <div class="list-item">
-                        <div class="name-box">
-                            ${p.pfp ? `<img src="${p.pfp}" class="list-pfp">` : ''}
+                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; background: rgba(0,0,0,0.35); border-radius: 12px;">
+                        <div style="display: flex; align-items: center; gap: 10px; font-weight: 600;">
+                            ${p.pfp ? `<img src="${p.pfp}" style="width:32px; height:32px; border-radius:50%; object-fit:cover;">` : ''}
                             ${i === 0 ? '👑' : i + 1 + '.'} ${p.name}
                         </div>
-                        <div class="exp-tag">${p.exp} XP</div>
+                        <div style="background: var(--accent-neon); color: #000; padding: 2px 8px; border-radius: 10px; font-weight: 800;">${p.exp} XP</div>
                     </div>
                 `).join('');
             });
         }
 
-        // LEAVE PARTY CLEANUP
         async function leaveCurrentParty() {
             if (currentPartyCode && myPlayerId) {
                 try { await deleteDoc(doc(db, "parties", currentPartyCode, "players", myPlayerId)); } catch(e){}
@@ -690,10 +1065,8 @@
             showToast("Left party room.", "info");
         });
 
-        // DRAG BUBBLE LOGIC
         function makeBubbleDraggable(element, playerId) {
             let active = false, currentX, currentY, initialX, initialY;
-
             element.addEventListener('mousedown', dragStart);
             element.addEventListener('touchstart', dragStart, { passive: true });
 
@@ -721,35 +1094,26 @@
                 window.removeEventListener('touchmove', drag);
                 window.removeEventListener('mouseup', dragEnd);
                 window.removeEventListener('touchend', dragEnd);
-
                 updateDoc(doc(db, "parties", currentPartyCode, "players", playerId), { x: currentX, y: currentY });
             }
         }
 
-        // GAME CONTROLS
         document.getElementById('btn-start-game').addEventListener('click', async () => {
             await updateDoc(doc(db, "parties", currentPartyCode), {
-                status: 'active',
-                question: 'Who is most likely to win this game?',
-                optA: 'Option A', optB: 'Option B'
+                status: 'active', question: 'Who is most likely to win this round?', optA: 'Option A', optB: 'Option B'
             });
         });
 
         window.submitAnswer = async function(choice) {
             document.getElementById('btn-opt-a').disabled = true;
             document.getElementById('btn-opt-b').disabled = true;
-            if (choice === 'A') document.getElementById('btn-opt-b').style.opacity = '0.3';
-            if (choice === 'B') document.getElementById('btn-opt-a').style.opacity = '0.3';
-
             await updateDoc(doc(db, "parties", currentPartyCode, "players", myPlayerId), { lastAnswer: choice });
             showToast("Answer locked!", "success");
         };
 
-        // Navigation
         document.querySelectorAll('.nav-to-leaderboard').forEach(b => b.addEventListener('click', () => switchScreen('screen-leaderboard')));
         document.getElementById('btn-back-game').addEventListener('click', () => switchScreen('screen-player'));
 
-        // Boot Init
         checkPersistentAuth();
     </script>
 </body>
